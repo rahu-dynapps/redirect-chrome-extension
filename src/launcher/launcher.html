@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lanceur de recherche</title>
+    <link rel="stylesheet" href="launcher.css" />
+  </head>
+  <body>
+    <main id="form">
+      <input
+        type="text"
+        id="query"
+        placeholder="Numéro de ticket, identifiant…"
+        autocomplete="off"
+        spellcheck="false"
+        autofocus
+      />
+
+      <div class="selectors">
+        <label class="field">
+          <span>Recherche</span>
+          <select id="search"></select>
+        </label>
+        <label class="field">
+          <span>Environnement</span>
+          <select id="environment"></select>
+        </label>
+      </div>
+
+      <p id="preview" class="preview">&nbsp;</p>
+
+      <footer class="hints">
+        <span><kbd>Entrée</kbd> nouvel onglet</span>
+        <span><kbd>Ctrl</kbd>+<kbd>Entrée</kbd> onglet actif</span>
+        <span><kbd>Alt</kbd>+<kbd>1…9</kbd> environnement</span>
+        <span><kbd>Échap</kbd> fermer</span>
+      </footer>
+    </main>
+
+    <main id="empty" hidden>
+      <p class="empty-title">Le lanceur n'est pas encore configuré.</p>
+      <p id="empty-detail" class="empty-detail"></p>
+      <button type="button" id="configure" class="btn btn-primary">Ouvrir la configuration</button>
+    </main>
+
+    <script type="module" src="launcher.js"></script>
+  </body>
+</html>

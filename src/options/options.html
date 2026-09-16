@@ -13,7 +13,8 @@
         <div>
           <h1>Redirection de domaines</h1>
           <p class="subtitle">
-            Remplace le domaine d'une URL par un autre en conservant le chemin, les paramètres et l'ancre.
+            Réécrit le domaine d'une URL en conservant chemin, paramètres et ancre, et ouvre une recherche
+            depuis un raccourci clavier.
           </p>
         </div>
       </div>
@@ -23,51 +24,110 @@
       </label>
     </header>
 
+    <nav class="tabs" role="tablist">
+      <button type="button" class="tab" data-tab="redirections" role="tab">Redirections</button>
+      <button type="button" class="tab" data-tab="lanceur" role="tab">Lanceur de recherche</button>
+    </nav>
+
     <main>
-      <section id="permission-banner" class="banner banner-warn" hidden>
-        <div>
-          <strong>Autorisations manquantes.</strong>
-          Chrome exige un accès explicite aux domaines source et cible pour pouvoir rediriger.
-        </div>
-        <button type="button" id="grant-all" class="btn btn-primary">Autoriser tous les domaines</button>
-      </section>
+      <div class="tab-panel" data-panel="redirections">
+        <section id="permission-banner" class="banner banner-warn" hidden>
+          <div>
+            <strong>Autorisations manquantes.</strong>
+            Chrome exige un accès explicite aux domaines source et cible pour pouvoir rediriger.
+          </div>
+          <button type="button" id="grant-all" class="btn btn-primary">Autoriser tous les domaines</button>
+        </section>
 
-      <section class="card">
-        <div class="card-head">
-          <h2>Redirections</h2>
-          <button type="button" id="add-rule" class="btn btn-primary">Ajouter une redirection</button>
-        </div>
-        <p class="hint">
-          La première redirection dont le domaine source correspond est appliquée. Glissez l'ordre avec les
-          flèches si plusieurs règles se recoupent.
-        </p>
-        <ul id="rules" class="rules"></ul>
-        <p id="empty-state" class="empty" hidden>
-          Aucune redirection pour l'instant. Exemple&nbsp;: <code>alias.client.fr</code> →
-          <code>client-prod-1234.odoo.com</code>.
-        </p>
-      </section>
+        <section class="card">
+          <div class="card-head">
+            <h2>Redirections</h2>
+            <button type="button" id="add-rule" class="btn btn-primary">Ajouter une redirection</button>
+          </div>
+          <p class="hint">
+            La première redirection dont le domaine source correspond est appliquée. Réordonnez avec les
+            flèches si plusieurs règles se recoupent.
+          </p>
+          <ul id="rules" class="rules"></ul>
+          <p id="empty-state" class="empty" hidden>
+            Aucune redirection pour l'instant. Exemple&nbsp;: <code>odoo.client.fr</code> →
+            <code>client-prod-1234.odoo.com</code>.
+          </p>
+        </section>
 
-      <section class="card">
-        <h2>Tester une URL</h2>
-        <p class="hint">Collez une URL reçue d'un utilisateur pour vérifier où elle sera redirigée.</p>
-        <div class="test-row">
-          <input
-            type="text"
-            id="test-input"
-            placeholder="https://alias.client.fr/odoo/contacts?debug=1#id=42"
-            spellcheck="false"
-          />
-          <button type="button" id="test-run" class="btn">Tester</button>
-        </div>
-        <p id="test-result" class="test-result" hidden></p>
-      </section>
+        <section class="card">
+          <h2>Tester une URL</h2>
+          <p class="hint">Collez une URL reçue d'un utilisateur pour vérifier où elle sera redirigée.</p>
+          <div class="test-row">
+            <input
+              type="text"
+              id="test-input"
+              placeholder="https://odoo.client.fr/odoo/contacts?debug=1#id=42"
+              spellcheck="false"
+            />
+            <button type="button" id="test-run" class="btn">Tester</button>
+          </div>
+          <p id="test-result" class="test-result" hidden></p>
+        </section>
+      </div>
+
+      <div class="tab-panel" data-panel="lanceur" hidden>
+        <section class="card">
+          <div class="card-head">
+            <h2>Environnements</h2>
+            <button type="button" id="add-environment" class="btn btn-primary">Ajouter un environnement</button>
+          </div>
+          <p class="hint">
+            L'URL de base sur laquelle la recherche est lancée&nbsp;: une instance Odoo, un environnement de
+            test… Le lanceur permet de basculer de l'un à l'autre (<kbd>Alt</kbd>+<kbd>1…9</kbd>).
+          </p>
+          <ul id="environments" class="rules"></ul>
+          <p id="environments-empty" class="empty" hidden>
+            Aucun environnement. Exemple&nbsp;: <code>https://client-prod-1234.odoo.com</code>.
+          </p>
+          <datalist id="known-hosts"></datalist>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Recherches</h2>
+            <button type="button" id="add-search" class="btn btn-primary">Ajouter une recherche</button>
+          </div>
+          <p class="hint">
+            Le modèle d'URL contient <code>{q}</code>, remplacé par la valeur saisie dans le lanceur.
+            Relatif à l'environnement (<code>/odoo/helpdesk/{q}</code>) ou absolu
+            (<code>https://support.example.com/t/{q}</code>). Pour Odoo&nbsp;16 et antérieur&nbsp;:
+            <code>/web#id={q}&amp;model=helpdesk.ticket&amp;view_type=form</code>.
+            Le mot-clé permet de choisir la recherche depuis le champ de saisie&nbsp;: <code>t 1234</code>.
+          </p>
+          <ul id="searches" class="rules"></ul>
+          <p id="searches-empty" class="empty" hidden>Aucune recherche configurée.</p>
+        </section>
+
+        <section class="card">
+          <h2>Raccourcis clavier</h2>
+          <p class="hint">
+            Le lanceur s'ouvre par défaut avec <kbd>Alt</kbd>+<kbd>Maj</kbd>+<kbd>O</kbd>. Chrome permet de
+            choisir n'importe quelle combinaison, et d'attribuer une touche aux trois raccourcis rapides
+            ci-dessous, qui ouvrent directement le lanceur sur une recherche et un environnement donnés.
+          </p>
+          <button type="button" id="open-shortcuts" class="btn">Configurer les raccourcis dans Chrome</button>
+          <ul id="slots" class="slots"></ul>
+          <label class="open-in">
+            <span>À la validation, ouvrir&nbsp;:</span>
+            <select id="open-in">
+              <option value="new-tab">dans un nouvel onglet (Ctrl+Entrée : onglet actif)</option>
+              <option value="current-tab">dans l'onglet actif (Ctrl+Entrée : nouvel onglet)</option>
+            </select>
+          </label>
+        </section>
+      </div>
 
       <section class="card">
         <h2>Sauvegarde</h2>
         <p class="hint">
-          Les redirections sont synchronisées avec votre compte Chrome. L'export permet de les partager avec
-          un collègue.
+          Redirections, environnements et recherches sont synchronisés avec votre compte Chrome. L'export
+          permet de les partager avec un collègue.
         </p>
         <div class="row-actions">
           <button type="button" id="export" class="btn">Exporter (JSON)</button>
@@ -85,7 +145,7 @@
         <div class="rule-grid">
           <label class="field">
             <span>Domaine source (l'alias)</span>
-            <input type="text" class="js-from" placeholder="alias.client.fr" spellcheck="false" />
+            <input type="text" class="js-from" placeholder="odoo.client.fr" spellcheck="false" />
           </label>
           <span class="arrow" aria-hidden="true">→</span>
           <label class="field">
@@ -111,6 +171,80 @@
           <input type="text" class="js-note note" placeholder="Note (ex. : client Dupont)" maxlength="200" />
         </div>
         <p class="rule-message js-message" hidden></p>
+      </li>
+    </template>
+
+    <template id="environment-template">
+      <li class="rule">
+        <div class="env-grid">
+          <label class="field">
+            <span>Nom</span>
+            <input type="text" class="js-label" placeholder="Production" maxlength="60" />
+          </label>
+          <label class="field">
+            <span>URL de base</span>
+            <input
+              type="text"
+              class="js-base"
+              list="known-hosts"
+              placeholder="https://client-prod-1234.odoo.com"
+              spellcheck="false"
+            />
+          </label>
+          <div class="rule-buttons">
+            <button type="button" class="icon-btn js-up" title="Monter" aria-label="Monter">↑</button>
+            <button type="button" class="icon-btn js-down" title="Descendre" aria-label="Descendre">↓</button>
+            <button type="button" class="icon-btn danger js-delete" title="Supprimer" aria-label="Supprimer">
+              ✕
+            </button>
+          </div>
+        </div>
+        <p class="rule-message js-message" hidden></p>
+      </li>
+    </template>
+
+    <template id="search-template">
+      <li class="rule">
+        <div class="search-grid">
+          <label class="field">
+            <span>Nom</span>
+            <input type="text" class="js-label" placeholder="Ticket" maxlength="60" />
+          </label>
+          <label class="field field-sm">
+            <span>Mot-clé</span>
+            <input type="text" class="js-keyword" placeholder="t" maxlength="16" spellcheck="false" />
+          </label>
+          <label class="field field-lg">
+            <span>Modèle d'URL</span>
+            <input type="text" class="js-template" placeholder="/odoo/helpdesk/{q}" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Environnement</span>
+            <select class="js-env"></select>
+          </label>
+          <div class="rule-buttons">
+            <button type="button" class="icon-btn js-up" title="Monter" aria-label="Monter">↑</button>
+            <button type="button" class="icon-btn js-down" title="Descendre" aria-label="Descendre">↓</button>
+            <button type="button" class="icon-btn danger js-delete" title="Supprimer" aria-label="Supprimer">
+              ✕
+            </button>
+          </div>
+        </div>
+        <p class="rule-message js-message" hidden></p>
+      </li>
+    </template>
+
+    <template id="slot-template">
+      <li class="slot">
+        <span class="slot-name"></span>
+        <label class="field">
+          <span>Recherche</span>
+          <select class="js-search"></select>
+        </label>
+        <label class="field">
+          <span>Environnement</span>
+          <select class="js-env"></select>
+        </label>
       </li>
     </template>
 

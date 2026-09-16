@@ -24,6 +24,11 @@ async function init() {
     chrome.runtime.openOptionsPage();
     window.close();
   });
+  $('#open-launcher').addEventListener('click', async () => {
+    await chrome.runtime.sendMessage({ type: 'open-launcher' });
+    window.close();
+  });
+  showLauncherShortcut();
 
   await renderCurrentTab();
 }
@@ -143,4 +148,16 @@ async function setTabBypass(tabId, enabled, url) {
 function openUrl(url) {
   chrome.tabs.update(tab.id, { url });
   window.close();
+}
+
+/** Affiche le raccourci réellement attribué au lanceur (l'utilisateur peut l'avoir changé). */
+async function showLauncherShortcut() {
+  const commands = await chrome.commands.getAll();
+  const shortcut = commands.find((command) => command.name === 'open-launcher')?.shortcut;
+  if (shortcut) {
+    const hint = document.createElement('span');
+    hint.className = 'shortcut';
+    hint.textContent = ` (${shortcut})`;
+    $('#open-launcher').append(hint);
+  }
 }

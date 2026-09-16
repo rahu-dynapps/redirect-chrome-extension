@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Redirection de domaines",
-  "version": "1.0.0",
-  "description": "Redirige automatiquement certains noms de domaine vers un autre en conservant le chemin, les paramètres et l'ancre de l'URL.",
+  "version": "1.1.0",
+  "description": "Redirige automatiquement certains noms de domaine vers un autre en conservant les paramètres de l'URL, et ouvre une recherche (ticket, contact…) depuis un raccourci clavier.",
   "minimum_chrome_version": "108",
   "permissions": [
     "declarativeNetRequest",
@@ -35,5 +35,22 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "commands": {
+    "open-launcher": {
+      "suggested_key": {
+        "default": "Alt+Shift+O"
+      },
+      "description": "Ouvrir le lanceur de recherche"
+    },
+    "quick-1": {
+      "description": "Lanceur — raccourci rapide 1 (à configurer)"
+    },
+    "quick-2": {
+      "description": "Lanceur — raccourci rapide 2 (à configurer)"
+    },
+    "quick-3": {
+      "description": "Lanceur — raccourci rapide 3 (à configurer)"
+    }
   }
 }
