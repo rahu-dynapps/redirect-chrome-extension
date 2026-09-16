@@ -159,6 +159,14 @@ Le bouton **« Configurer les raccourcis dans Chrome »** (onglet « Lanceur »)
   recherche et à un environnement, et ouvre le lanceur directement dessus : par exemple
   <kbd>Alt</kbd>+<kbd>T</kbd> pour « Ticket sur la production ».
 
+### Sauvegarde et transfert
+
+Redirections, environnements et recherches sont synchronisés avec votre compte Chrome, et
+exportables en JSON. La **fusion** ajoute ce qui manque sans toucher à vos entrées ; le
+**remplacement** échange toute la configuration — le bon choix pour transporter votre paramétrage
+sur un autre poste. Dans les deux cas, les liens entre recherches et environnements (modèles par
+environnement, environnement épinglé, raccourcis rapides) sont conservés.
+
 ## Autorisations
 
 - `declarativeNetRequest` : appliquer les règles de redirection.
@@ -195,6 +203,7 @@ src/background.js        # service worker : règles DNR, dérogation par onglet,
 src/lib/rules.js         # logique pure des redirections (parsing, règles DNR, prévisualisation)
 src/lib/launcher.js      # logique pure du lanceur (environnements, recherches, construction d'URL)
 src/lib/i18n.js          # application des traductions au DOM
+src/lib/transfer.js      # export / import, en préservant les liens recherches ↔ environnements
 src/lib/storage.js       # accès à chrome.storage.sync
 src/options/             # page d'options (onglets Redirections / Lanceur)
 src/popup/               # popup de la barre d'outils

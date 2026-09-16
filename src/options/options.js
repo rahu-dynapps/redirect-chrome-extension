@@ -17,6 +17,7 @@ import {
   normalizeSearch
 } from '../lib/launcher.js';
 import { applyI18n, t } from '../lib/i18n.js';
+import { buildExport, importConfiguration } from '../lib/transfer.js';
 import {
   DEFAULT_LAUNCHER,
   DEFAULT_SETTINGS,
@@ -86,7 +87,8 @@ async function init() {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
   });
   $('#export').addEventListener('click', onExport);
-  $('#import').addEventListener('click', () => $('#import-file').click());
+  $('#import-merge').addEventListener('click', () => pickImportFile('merge'));
+  $('#import-replace').addEventListener('click', () => pickImportFile('replace'));
   $('#import-file').addEventListener('change', onImportFile);
   chrome.permissions.onAdded?.addListener(onPermissionsChanged);
   chrome.permissions.onRemoved?.addListener(onPermissionsChanged);
@@ -623,18 +625,7 @@ function renderSlots() {
 // ------------------------------------------------------------ import/export
 
 function onExport() {
-  const payload = JSON.stringify(
-    {
-      version: 2,
-      mappings: state.mappings,
-      settings: state.settings,
-      environments: state.environments,
-      searches: state.searches,
-      launcher: state.launcher
-    },
-    null,
-    2
-  );
+  const payload = JSON.stringify(buildExport(state), null, 2);
   const url = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
   const link = document.createElement('a');
   link.href = url;
@@ -651,66 +642,40 @@ function onExport() {
   );
 }
 
+let importMode = 'merge';
+function pickImportFile(mode) {
+  if (mode === 'replace' && !confirm(t('importReplaceConfirm'))) return;
+  importMode = mode;
+  $('#import-file').click();
+}
+
 async function onImportFile(event) {
   const file = event.target.files?.[0];
   event.target.value = '';
   if (!file) return;
   try {
-    const parsed = JSON.parse(await file.text());
-    const counts = { mappings: 0, environments: 0, searches: 0 };
-
-    const incomingMappings = Array.isArray(parsed) ? parsed : parsed?.mappings;
-    if (Array.isArray(incomingMappings)) {
-      const known = new Set(state.mappings.map((m) => `${m.fromHost}:${m.fromPort}`));
-      for (const raw of incomingMappings) {
-        if (state.mappings.length >= MAX_MAPPINGS) break;
-        const { mapping } = normalizeMapping({ ...raw, id: newMappingId() });
-        const key = `${mapping.fromHost}:${mapping.fromPort}`;
-        if (!isUsable(mapping) || known.has(key)) continue;
-        known.add(key);
-        state.mappings.push(mapping);
-        counts.mappings += 1;
-      }
-    }
-
-    if (Array.isArray(parsed?.environments)) {
-      const known = new Set(state.environments.map((e) => e.baseUrl));
-      for (const raw of parsed.environments) {
-        if (state.environments.length >= MAX_ENVIRONMENTS) break;
-        const { environment, errors } = normalizeEnvironment({ ...raw, id: undefined });
-        if (errors.length || known.has(environment.baseUrl)) continue;
-        known.add(environment.baseUrl);
-        state.environments.push(environment);
-        counts.environments += 1;
-      }
-    }
-
-    if (Array.isArray(parsed?.searches)) {
-      const known = new Set(state.searches.map((s) => s.template));
-      for (const raw of parsed.searches) {
-        if (state.searches.length >= MAX_SEARCHES) break;
-        // Les identifiants d'environnement d'un autre poste n'ont pas de sens ici.
-        const { search, errors } = normalizeSearch({ ...raw, id: undefined, environmentId: '' });
-        if (errors.length || known.has(search.template)) continue;
-        known.add(search.template);
-        state.searches.push(search);
-        counts.searches += 1;
-      }
-    }
+    const payload = JSON.parse(await file.text());
+    const result = importConfiguration(state, payload, importMode);
+    state = { ...state, ...result };
 
     await Promise.all([
       saveMappings(state.mappings),
       saveEnvironments(state.environments),
-      saveSearches(state.searches)
+      saveSearches(state.searches),
+      saveLauncher(state.launcher)
     ]);
+    $('#open-in').value = state.launcher.openIn === 'current-tab' ? 'current-tab' : 'new-tab';
     await refreshPermissions();
     renderAll();
-    const total = counts.mappings + counts.environments + counts.searches;
+
+    const { counts } = result;
+    const added = counts.mappings + counts.environments + counts.searches;
+    const skipped = counts.skipped ? ` ${t('importSkipped', [String(counts.skipped)])}` : '';
     setIoResult(
-      total
-        ? t('importDone', [String(counts.mappings), String(counts.environments), String(counts.searches)])
-        : t('importNothing'),
-      total ? 'ok' : 'ko'
+      added
+        ? `${t('importDone', [String(counts.mappings), String(counts.environments), String(counts.searches)])}${skipped}`
+        : `${t('importNothing')}${skipped}`,
+      added ? 'ok' : 'ko'
     );
   } catch (error) {
     setIoResult(t('importFailed', [error.message]), 'err');

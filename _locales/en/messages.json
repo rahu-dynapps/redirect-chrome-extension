@@ -272,9 +272,6 @@
   "exportBtn": {
     "message": "Export (JSON)"
   },
-  "importBtn": {
-    "message": "Import (JSON)"
-  },
   "exportDone": {
     "message": "$1 redirect(s), $2 environment(s) and $3 search(es) exported."
   },
@@ -517,5 +514,20 @@
   },
   "errOverrideNoPlaceholder": {
     "message": "The template for “$1” must contain {q}."
+  },
+  "importMerge": {
+    "message": "Import — merge"
+  },
+  "importReplace": {
+    "message": "Import — replace"
+  },
+  "importReplaceConfirm": {
+    "message": "Replace the current configuration with the file? Your redirects, environments and searches will be discarded."
+  },
+  "importSkipped": {
+    "message": "$1 entry/entries already present were skipped."
+  },
+  "backupHintModes": {
+    "message": "Merge adds what is missing and leaves your entries untouched; replace swaps the whole configuration — the right choice to move your setup to another computer."
   }
 }

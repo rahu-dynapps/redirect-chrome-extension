@@ -134,6 +134,77 @@ def check_i18n_keys(manifest: dict) -> None:
         warnings.append(f"{len(unused)} message(s) jamais utilisé(s) : {', '.join(unused)}")
 
 
+JS_KEYWORDS = {
+    "if", "for", "while", "switch", "catch", "return", "typeof", "function", "new", "await",
+    "else", "do", "try", "throw", "delete", "void", "in", "of", "case", "yield", "async",
+    "instanceof", "super", "this",
+}
+JS_GLOBALS = {
+    "Array", "Boolean", "Blob", "CSS", "Date", "Error", "File", "JSON", "Map", "Math", "Node",
+    "Number", "Object", "Promise", "RegExp", "Set", "String", "URL", "URLSearchParams", "chrome",
+    "confirm", "clearTimeout", "console", "document", "encodeURIComponent", "fetch", "globalThis",
+    "history", "isNaN", "localStorage", "location", "parseFloat", "parseInt", "setTimeout",
+    "structuredClone", "window",
+}
+
+
+def strip_noise(text: str) -> str:
+    """Retire commentaires et littéraux, en un seul balayage : l'ordre compte, « /* » dans une
+    chaîne comme « *://hote/* » n'ouvre pas un commentaire."""
+    out = []
+    i, size = 0, len(text)
+    while i < size:
+        pair = text[i : i + 2]
+        if pair == "//":
+            newline = text.find("\n", i)
+            i = size if newline == -1 else newline
+        elif pair == "/*":
+            closing = text.find("*/", i + 2)
+            i = size if closing == -1 else closing + 2
+            out.append(" ")
+        elif text[i] in "\"'`":
+            quote, i = text[i], i + 1
+            while i < size:
+                if text[i] == "\\":
+                    i += 2
+                    continue
+                if text[i] == quote:
+                    i += 1
+                    break
+                if quote != "`" and text[i] == "\n":
+                    break
+                i += 1
+            out.append('""')
+        else:
+            out.append(text[i])
+            i += 1
+    return "".join(out)
+
+
+def check_undefined_calls() -> None:
+    """Détecte un appel à une fonction qui n'existe nulle part dans le fichier : une suppression
+    accidentelle passe la vérification de syntaxe, pas celle-ci."""
+    for path in sorted((ROOT / "src").rglob("*.js")):
+        text = strip_noise(path.read_text(encoding="utf-8"))
+
+        known = set(re.findall(r"(?:async\s+)?function\s+([A-Za-z_$][\w$]*)", text))
+        known |= set(re.findall(r"(?:const|let|var)\s+([A-Za-z_$][\w$]*)", text))
+        # Noms importés, déstructurés, et paramètres de fonctions (souvent appelés en rappel).
+        for block in re.findall(r"import\s*\{([^}]*)\}", text):
+            known |= {part.split(" as ")[-1].strip() for part in block.split(",") if part.strip()}
+        for block in re.findall(r"\[([^\[\]]*)\]\s*(?:=|of|in)", text):
+            known |= {part.strip() for part in block.split(",") if part.strip()}
+        for block in re.findall(r"\{([^{}]*)\}\s*=", text):
+            known |= {re.split(r"[:=]", part)[-1].strip() for part in block.split(",") if part.strip()}
+        for block in re.findall(r"\(([^()]*)\)\s*(?:=>|\{)", text):
+            known |= {re.split(r"[:=]", part)[0].strip() for part in block.split(",") if part.strip()}
+        known = {name for name in known if re.fullmatch(r"[A-Za-z_$][\w$]*", name or "")}
+
+        called = set(re.findall(r"(?<![.\w$])([A-Za-z_$][\w$]*)\s*\(", text))
+        for name in sorted(called - known - JS_KEYWORDS - JS_GLOBALS):
+            errors.append(f"{path.relative_to(ROOT)} : appel à « {name}() » qui n'est défini nulle part.")
+
+
 def check_no_remote_code() -> None:
     """Le code hébergé à distance est interdit en MV3 : motif de rejet classique."""
     pattern = re.compile(r"""<script[^>]+src=["']https?://|\bimportScripts\(|\beval\(""")
@@ -160,6 +231,7 @@ def main() -> int:
     check_i18n_keys(manifest)
     check_references(manifest)
     check_no_remote_code()
+    check_undefined_calls()
 
     if errors:
         print("Empaquetage refusé :", file=sys.stderr)

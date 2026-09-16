@@ -272,9 +272,6 @@
   "exportBtn": {
     "message": "Exporter (JSON)"
   },
-  "importBtn": {
-    "message": "Importer (JSON)"
-  },
   "exportDone": {
     "message": "$1 redirection(s), $2 environnement(s) et $3 recherche(s) exportés."
   },
@@ -517,5 +514,20 @@
   },
   "errOverrideNoPlaceholder": {
     "message": "Le modèle pour « $1 » doit contenir {q}."
+  },
+  "importMerge": {
+    "message": "Importer — fusionner"
+  },
+  "importReplace": {
+    "message": "Importer — remplacer"
+  },
+  "importReplaceConfirm": {
+    "message": "Remplacer la configuration actuelle par le fichier ? Vos redirections, environnements et recherches seront écrasés."
+  },
+  "importSkipped": {
+    "message": "$1 entrée(s) déjà présente(s) ont été ignorées."
+  },
+  "backupHintModes": {
+    "message": "La fusion ajoute ce qui manque sans toucher à vos entrées ; le remplacement échange toute la configuration — le bon choix pour transporter votre paramétrage sur un autre poste."
   }
 }

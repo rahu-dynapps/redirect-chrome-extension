@@ -154,6 +154,14 @@ The **“Configure shortcuts in Chrome”** button (Launcher tab) opens
   environment, and opens the launcher straight onto it: for example <kbd>Alt</kbd>+<kbd>T</kbd> for
   “Ticket on production”.
 
+### Backup and transfer
+
+Redirects, environments and searches are synced with your Chrome account, and can be exported to a
+JSON file. **Merge** adds what is missing and leaves your own entries untouched; **replace** swaps
+the whole configuration — the right choice to move your setup to another computer. Either way the
+links between searches and environments (per-environment templates, pinned environment, quick
+shortcuts) are preserved.
+
 ## Permissions
 
 - `declarativeNetRequest` — apply the redirect rules.
@@ -188,6 +196,7 @@ src/background.js        # service worker: DNR rules, per-tab bypass, launcher w
 src/lib/rules.js         # pure redirect logic (parsing, DNR rules, preview)
 src/lib/launcher.js      # pure launcher logic (environments, searches, URL building)
 src/lib/i18n.js          # applies translations to the DOM
+src/lib/transfer.js      # export / import, preserving links between searches and environments
 src/lib/storage.js       # chrome.storage.sync access
 src/options/             # options page (Redirects / Launcher tabs)
 src/popup/               # toolbar popup
