@@ -8,42 +8,46 @@ export const MAX_MAPPINGS = 200;
 const HOSTNAME_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/;
 
 /**
- * Accepte aussi bien « alias.client.fr » qu'une URL complète collée depuis un mail
- * (« https://alias.client.fr/odoo/contacts?debug=1 ») et n'en garde que l'hôte + le port.
- * @returns {{ok: true, host: string, port: string} | {ok: false, error: string}}
+ * Accepte aussi bien « helpdesk.example.com » qu'une URL complète collée depuis un mail
+ * (« https://helpdesk.example.com/tickets/42?debug=1 ») et n'en garde que l'hôte + le port.
+ * Les erreurs sont renvoyées sous forme de code : la traduction est faite par l'interface.
+ * @returns {{ok: true, host: string, port: string} | {ok: false, code: string, value: string}}
  */
 export function parseHostInput(raw) {
   const input = String(raw ?? '').trim();
-  if (!input) return { ok: false, error: 'Indiquez un nom de domaine.' };
+  if (!input) return { ok: false, code: 'errHostEmpty', value: '' };
 
   const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(input) ? input : `https://${input}`;
   let url;
   try {
     url = new URL(withScheme);
   } catch {
-    return { ok: false, error: `« ${input} » n'est pas un nom de domaine valide.` };
+    return { ok: false, code: 'errHostInvalid', value: input };
   }
   if (!/^https?:$/.test(url.protocol)) {
-    return { ok: false, error: 'Seuls les domaines en http:// et https:// sont pris en charge.' };
+    return { ok: false, code: 'errHostScheme', value: input };
   }
   // new URL() se charge de la mise en minuscules et de la conversion IDN (punycode).
   const host = url.hostname;
   if (!HOSTNAME_RE.test(host)) {
-    return { ok: false, error: `« ${input} » n'est pas un nom de domaine valide.` };
+    return { ok: false, code: 'errHostInvalid', value: input };
   }
   if (url.port && !/^\d{1,5}$/.test(url.port)) {
-    return { ok: false, error: `Port invalide dans « ${input} ».` };
+    return { ok: false, code: 'errHostPort', value: input };
   }
   return { ok: true, host, port: url.port || '' };
 }
 
-/** Normalise une redirection saisie dans l'interface. */
+/**
+ * Normalise une redirection saisie dans l'interface.
+ * @returns {{mapping: object, errors: Array<{field: string, code: string, value: string}>}}
+ */
 export function normalizeMapping(raw) {
   const from = parseHostInput(raw?.from ?? raw?.fromHost ?? '');
   const to = parseHostInput(raw?.to ?? raw?.toHost ?? '');
   const errors = [];
-  if (!from.ok) errors.push(`Domaine source : ${from.error}`);
-  if (!to.ok) errors.push(`Domaine cible : ${to.error}`);
+  if (!from.ok) errors.push({ field: 'from', code: from.code, value: from.value });
+  if (!to.ok) errors.push({ field: 'to', code: to.code, value: to.value });
 
   const mapping = {
     id: typeof raw?.id === 'string' && raw.id ? raw.id : newMappingId(),
@@ -59,7 +63,7 @@ export function normalizeMapping(raw) {
   };
 
   if (!errors.length && hostKey(mapping.fromHost, mapping.fromPort) === hostKey(mapping.toHost, mapping.toPort)) {
-    errors.push('Le domaine source et le domaine cible sont identiques.');
+    errors.push({ field: '', code: 'errSameHost', value: '' });
   }
   return { mapping, errors };
 }

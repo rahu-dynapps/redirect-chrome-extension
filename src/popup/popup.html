@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Redirection de domaines</title>
+    <title data-i18n="extName">Domain Redirect</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <header>
-      <h1>Redirection de domaines</h1>
-      <label class="switch" title="Suspendre toutes les redirections">
+      <h1 data-i18n="extName"></h1>
+      <label class="switch" data-i18n-title="popupPauseTitle">
         <input type="checkbox" id="global-enabled" />
-        <span class="sr-only">Redirections activées</span>
+        <span class="sr-only" data-i18n="redirectsEnabled"></span>
       </label>
     </header>
 
     <section class="current">
-      <span class="label">Onglet actif</span>
+      <span class="label" data-i18n="popupTabLabel"></span>
       <p id="host" class="host">—</p>
-      <p id="state" class="state">Chargement…</p>
+      <p id="state" class="state" data-i18n="popupLoading"></p>
     </section>
 
     <div class="actions">
@@ -26,11 +26,11 @@
     </div>
 
     <div class="actions launcher-action">
-      <button type="button" id="open-launcher" class="btn">Ouvrir le lanceur de recherche</button>
+      <button type="button" id="open-launcher" class="btn" data-i18n="popupOpenLauncher"></button>
     </div>
 
     <footer>
-      <button type="button" id="open-options" class="link">Gérer les redirections…</button>
+      <button type="button" id="open-options" class="link" data-i18n="popupManage"></button>
     </footer>
 
     <script type="module" src="popup.js"></script>

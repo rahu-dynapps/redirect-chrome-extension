@@ -2,6 +2,7 @@
 // gère la dérogation « ne pas rediriger cet onglet » et la fenêtre du lanceur.
 import { BYPASS_RULE_PRIORITY, buildDnrRules } from './lib/rules.js';
 import { EXAMPLE_SEARCHES, QUICK_SLOTS, normalizeSearch } from './lib/launcher.js';
+import { t } from './lib/i18n.js';
 import { loadState, loadLauncher, onStateChanged, saveSearches } from './lib/storage.js';
 
 const BYPASS_RESOURCE_TYPES = ['main_frame', 'sub_frame'];
@@ -26,9 +27,7 @@ async function updateBadge(settings, ruleCount) {
   await chrome.action.setBadgeText({ text: paused ? 'OFF' : '' });
   if (paused) await chrome.action.setBadgeBackgroundColor({ color: '#9aa0b4' });
   await chrome.action.setTitle({
-    title: paused
-      ? 'Redirection de domaines — en pause'
-      : `Redirection de domaines — ${ruleCount} redirection(s) active(s)`
+    title: paused ? t('actionTitlePaused') : t('actionTitleActive', [String(ruleCount)])
   });
 }
 
@@ -151,7 +150,9 @@ async function windowOrNull(windowId) {
 async function seedExamples() {
   const { searches } = await loadLauncher();
   if (searches.length) return;
-  await saveSearches(EXAMPLE_SEARCHES.map((raw) => normalizeSearch(raw).search));
+  await saveSearches(
+    EXAMPLE_SEARCHES.map(({ labelKey, ...raw }) => normalizeSearch({ ...raw, label: t(labelKey) }).search)
+  );
 }
 
 // ------------------------------------------------------------------ événements

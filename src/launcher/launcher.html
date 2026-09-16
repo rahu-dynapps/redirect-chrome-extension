@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Lanceur de recherche</title>
+    <title data-i18n="launcherTitle">Search launcher</title>
     <link rel="stylesheet" href="launcher.css" />
   </head>
   <body>
@@ -10,7 +10,7 @@
       <input
         type="text"
         id="query"
-        placeholder="Numéro de ticket, identifiant…"
+        data-i18n-placeholder="phLauncherQuery"
         autocomplete="off"
         spellcheck="false"
         autofocus
@@ -18,11 +18,11 @@
 
       <div class="selectors">
         <label class="field">
-          <span>Recherche</span>
+          <span data-i18n="labelSearch"></span>
           <select id="search"></select>
         </label>
         <label class="field">
-          <span>Environnement</span>
+          <span data-i18n="labelEnvironment"></span>
           <select id="environment"></select>
         </label>
       </div>
@@ -30,17 +30,17 @@
       <p id="preview" class="preview">&nbsp;</p>
 
       <footer class="hints">
-        <span><kbd>Entrée</kbd> nouvel onglet</span>
-        <span><kbd>Ctrl</kbd>+<kbd>Entrée</kbd> onglet actif</span>
-        <span><kbd>Alt</kbd>+<kbd>1…9</kbd> environnement</span>
-        <span><kbd>Échap</kbd> fermer</span>
+        <span data-i18n-rich="hintEnter"></span>
+        <span data-i18n-rich="hintCtrlEnter"></span>
+        <span data-i18n-rich="hintAltNum"></span>
+        <span data-i18n-rich="hintEsc"></span>
       </footer>
     </main>
 
     <main id="empty" hidden>
-      <p class="empty-title">Le lanceur n'est pas encore configuré.</p>
+      <p class="empty-title" data-i18n="launcherEmptyTitle"></p>
       <p id="empty-detail" class="empty-detail"></p>
-      <button type="button" id="configure" class="btn btn-primary">Ouvrir la configuration</button>
+      <button type="button" id="configure" class="btn btn-primary" data-i18n="launcherConfigure"></button>
     </main>
 
     <script type="module" src="launcher.js"></script>

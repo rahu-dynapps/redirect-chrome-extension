@@ -1,3 +1,4 @@
+import { applyI18n, t } from '../lib/i18n.js';
 import { isUsable, previewRedirect, requiredOrigins, reverseRedirect } from '../lib/rules.js';
 import { DEFAULT_SETTINGS, loadState, saveSettings } from '../lib/storage.js';
 
@@ -9,6 +10,7 @@ let tab = null;
 init();
 
 async function init() {
+  applyI18n();
   [state, [tab]] = await Promise.all([
     loadState(),
     chrome.tabs.query({ active: true, currentWindow: true })
@@ -44,7 +46,7 @@ async function renderCurrentTab() {
   const url = safeUrl(tab?.url);
   if (!url || !/^https?:$/.test(url.protocol)) {
     $('#host').textContent = '—';
-    setState('Cette page ne peut pas être redirigée.');
+    setState(t('popupNotRedirectable'));
     return;
   }
   $('#host').textContent = url.host;
@@ -56,34 +58,34 @@ async function renderCurrentTab() {
   if (incoming.ok) {
     // La page n'aurait pas dû s'afficher sur ce domaine : redirection inactive ou contournée.
     if (bypassed) {
-      setState('Redirection désactivée pour cet onglet.');
-      showButton(primary, 'Réactiver la redirection', async () => {
+      setState(t('popupBypassedThis'));
+      showButton(primary, t('popupReenable'), async () => {
         await setTabBypass(tab.id, false, incoming.url);
         window.close();
       });
     } else if (state.settings.enabled === false) {
-      setState('Redirections en pause : cette URL serait redirigée.');
-      showButton(primary, 'Ouvrir la version redirigée', () => openUrl(incoming.url));
+      setState(t('popupPausedWouldRedirect'));
+      showButton(primary, t('popupOpenRedirected'), () => openUrl(incoming.url));
     } else if (!(await hasPermissions(incoming.mapping))) {
-      setState('Autorisation manquante pour appliquer la redirection.');
-      showButton(primary, 'Autoriser les domaines', async () => {
+      setState(t('popupMissingPermission'));
+      showButton(primary, t('popupAllowDomains'), async () => {
         await chrome.permissions.request({ origins: requiredOrigins(incoming.mapping) });
         await renderCurrentTab();
       });
     } else {
-      setState('Redirection en cours…');
+      setState(t('popupRedirecting'));
     }
     return;
   }
 
   if (origin) {
-    setState(`Domaine cible de ${origin.mapping.fromHost}.`, true);
-    showButton(primary, `Ouvrir ${origin.mapping.fromHost} sans redirection`, async () => {
+    setState(t('popupTargetOf', [origin.mapping.fromHost]), true);
+    showButton(primary, t('popupOpenWithout', [origin.mapping.fromHost]), async () => {
       await setTabBypass(tab.id, true, origin.url);
       window.close();
     });
     if (bypassed) {
-      showButton(secondary, 'Réactiver la redirection pour cet onglet', async () => {
+      showButton(secondary, t('popupReenableTab'), async () => {
         await setTabBypass(tab.id, false);
         chrome.tabs.reload(tab.id);
         window.close();
@@ -93,8 +95,8 @@ async function renderCurrentTab() {
   }
 
   if (bypassed) {
-    setState('Redirections désactivées pour cet onglet.');
-    showButton(primary, 'Réactiver la redirection pour cet onglet', async () => {
+    setState(t('popupBypassedAll'));
+    showButton(primary, t('popupReenableTab'), async () => {
       await setTabBypass(tab.id, false);
       chrome.tabs.reload(tab.id);
       window.close();
@@ -102,8 +104,8 @@ async function renderCurrentTab() {
     return;
   }
 
-  setState('Aucune redirection pour ce domaine.');
-  showButton(primary, `Rediriger ${url.hostname} vers…`, () => {
+  setState(t('popupNoRedirect'));
+  showButton(primary, t('popupCreateRedirect', [url.hostname]), () => {
     chrome.tabs.create({
       url: chrome.runtime.getURL(`src/options/options.html?from=${encodeURIComponent(url.host)}`)
     });

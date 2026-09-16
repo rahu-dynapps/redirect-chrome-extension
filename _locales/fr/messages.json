@@ -1,0 +1,446 @@
+{
+  "extName": {
+    "message": "Redirection de domaines et lanceur"
+  },
+  "extDescription": {
+    "message": "Redirige des domaines en conservant chemin et paramètres, et ouvre une page depuis un identifiant saisi au clavier."
+  },
+  "cmdOpenLauncher": {
+    "message": "Ouvrir le lanceur de recherche"
+  },
+  "cmdQuick1": {
+    "message": "Lanceur — raccourci rapide 1 (à configurer)"
+  },
+  "cmdQuick2": {
+    "message": "Lanceur — raccourci rapide 2 (à configurer)"
+  },
+  "cmdQuick3": {
+    "message": "Lanceur — raccourci rapide 3 (à configurer)"
+  },
+  "optionsTitle": {
+    "message": "Redirection de domaines et lanceur — Options"
+  },
+  "appTagline": {
+    "message": "Réécrit le domaine d'une URL en conservant chemin, paramètres et ancre, et ouvre une page depuis un raccourci clavier."
+  },
+  "redirectsEnabled": {
+    "message": "Redirections activées"
+  },
+  "tabRedirects": {
+    "message": "Redirections"
+  },
+  "tabLauncher": {
+    "message": "Lanceur de recherche"
+  },
+  "permBannerTitle": {
+    "message": "Autorisations manquantes."
+  },
+  "permBannerText": {
+    "message": "Chrome exige un accès explicite aux domaines source et cible pour pouvoir rediriger."
+  },
+  "permGrantAll": {
+    "message": "Autoriser tous les domaines"
+  },
+  "sectionRedirects": {
+    "message": "Redirections"
+  },
+  "addRedirect": {
+    "message": "Ajouter une redirection"
+  },
+  "redirectsHint": {
+    "message": "La première redirection dont le domaine source correspond est appliquée. Réordonnez avec les flèches si plusieurs règles se recoupent."
+  },
+  "redirectsEmpty": {
+    "message": "Aucune redirection pour l'instant. Exemple : `helpdesk.example.com` → `app-1234.hosting.example.com`."
+  },
+  "fieldSourceDomain": {
+    "message": "Domaine source (l'alias)"
+  },
+  "fieldTargetDomain": {
+    "message": "Domaine cible"
+  },
+  "phSourceDomain": {
+    "message": "helpdesk.example.com"
+  },
+  "phTargetDomain": {
+    "message": "app-1234.hosting.example.com"
+  },
+  "toggleEnableRule": {
+    "message": "Activer ou désactiver cette redirection"
+  },
+  "btnEnable": {
+    "message": "Activer"
+  },
+  "btnUp": {
+    "message": "Monter"
+  },
+  "btnDown": {
+    "message": "Descendre"
+  },
+  "btnDelete": {
+    "message": "Supprimer"
+  },
+  "optSubdomains": {
+    "message": "Inclure les sous-domaines"
+  },
+  "optForceHttps": {
+    "message": "Forcer HTTPS"
+  },
+  "optSubframes": {
+    "message": "Rediriger aussi les iframes"
+  },
+  "phNote": {
+    "message": "Note (ex. : nom du client)"
+  },
+  "msgIncomplete": {
+    "message": "Renseignez le domaine source et le domaine cible."
+  },
+  "msgMissingPermission": {
+    "message": "Chrome doit être autorisé à accéder à $1 et $2."
+  },
+  "btnAllow": {
+    "message": "Autoriser"
+  },
+  "confirmDelete": {
+    "message": "Supprimer $1 ?"
+  },
+  "thisRedirect": {
+    "message": "cette redirection"
+  },
+  "errHostEmpty": {
+    "message": "Indiquez un nom de domaine."
+  },
+  "errHostInvalid": {
+    "message": "« $1 » n'est pas un nom de domaine valide."
+  },
+  "errHostScheme": {
+    "message": "Seuls les domaines en http:// et https:// sont pris en charge."
+  },
+  "errHostPort": {
+    "message": "Port invalide dans « $1 »."
+  },
+  "errSameHost": {
+    "message": "Le domaine source et le domaine cible sont identiques."
+  },
+  "errFieldSource": {
+    "message": "Domaine source : $1"
+  },
+  "errFieldTarget": {
+    "message": "Domaine cible : $1"
+  },
+  "testTitle": {
+    "message": "Tester une URL"
+  },
+  "testHint": {
+    "message": "Collez une URL reçue d'un utilisateur pour vérifier où elle sera redirigée."
+  },
+  "phTestUrl": {
+    "message": "https://helpdesk.example.com/tickets/42?debug=1#tab=notes"
+  },
+  "testRun": {
+    "message": "Tester"
+  },
+  "testEmpty": {
+    "message": "Saisissez une URL."
+  },
+  "testInvalidUrl": {
+    "message": "URL invalide."
+  },
+  "testUnsupportedScheme": {
+    "message": "Seules les URL http:// et https:// peuvent être redirigées."
+  },
+  "testPaused": {
+    "message": "Les redirections sont en pause (interrupteur en haut de la page)."
+  },
+  "testNoMatch": {
+    "message": "Aucune redirection ne correspond : cette URL sera ouverte telle quelle."
+  },
+  "testMissingPermission": {
+    "message": "(autorisation manquante : la redirection ne s'appliquera pas)"
+  },
+  "sectionEnvironments": {
+    "message": "Environnements"
+  },
+  "addEnvironment": {
+    "message": "Ajouter un environnement"
+  },
+  "environmentsHint": {
+    "message": "L'URL de base sur laquelle la recherche est lancée : une instance de production, un environnement de test… Le lanceur permet de basculer de l'un à l'autre ([[Alt]]+[[1…9]])."
+  },
+  "environmentsEmpty": {
+    "message": "Aucun environnement. Exemple : `https://app-1234.hosting.example.com`."
+  },
+  "fieldName": {
+    "message": "Nom"
+  },
+  "fieldBaseUrl": {
+    "message": "URL de base"
+  },
+  "phEnvName": {
+    "message": "Production"
+  },
+  "phBaseUrl": {
+    "message": "https://app-1234.hosting.example.com"
+  },
+  "errBaseUrlEmpty": {
+    "message": "Indiquez l'URL de base de l'environnement."
+  },
+  "errBaseUrlInvalid": {
+    "message": "« $1 » n'est pas une URL valide."
+  },
+  "confirmDeleteEnvironment": {
+    "message": "Supprimer l'environnement « $1 » ?"
+  },
+  "sectionSearches": {
+    "message": "Recherches"
+  },
+  "addSearch": {
+    "message": "Ajouter une recherche"
+  },
+  "searchesHint": {
+    "message": "Le modèle d'URL contient `{q}`, remplacé par la valeur saisie dans le lanceur. Relatif à l'environnement (`/tickets/{q}`) ou absolu (`https://support.example.com/t/{q}`). Les URL à ancre fonctionnent aussi : `/app#id={q}&model=ticket`. Le mot-clé permet de choisir la recherche depuis le champ de saisie : `t 1234`."
+  },
+  "searchesEmpty": {
+    "message": "Aucune recherche configurée."
+  },
+  "fieldKeyword": {
+    "message": "Mot-clé"
+  },
+  "fieldUrlTemplate": {
+    "message": "Modèle d'URL"
+  },
+  "fieldEnvironment": {
+    "message": "Environnement"
+  },
+  "phSearchName": {
+    "message": "Ticket"
+  },
+  "phKeyword": {
+    "message": "t"
+  },
+  "phTemplate": {
+    "message": "/tickets/{q}"
+  },
+  "envChosenInLauncher": {
+    "message": "Choisi dans le lanceur"
+  },
+  "errTemplateEmpty": {
+    "message": "Indiquez le modèle d'URL."
+  },
+  "errTemplateNoPlaceholder": {
+    "message": "Le modèle doit contenir {q}, remplacé par la valeur saisie."
+  },
+  "errDuplicateKeyword": {
+    "message": "Le mot-clé « $1 » est déjà utilisé."
+  },
+  "confirmDeleteSearch": {
+    "message": "Supprimer la recherche « $1 » ?"
+  },
+  "unnamed": {
+    "message": "Sans nom"
+  },
+  "sectionShortcuts": {
+    "message": "Raccourcis clavier"
+  },
+  "shortcutsHint": {
+    "message": "Le lanceur s'ouvre par défaut avec [[Alt]]+[[Maj]]+[[O]]. Chrome permet de choisir n'importe quelle combinaison, et d'attribuer une touche aux trois raccourcis rapides ci-dessous, qui ouvrent directement le lanceur sur une recherche et un environnement donnés."
+  },
+  "openShortcuts": {
+    "message": "Configurer les raccourcis dans Chrome"
+  },
+  "slotName": {
+    "message": "Raccourci rapide $1"
+  },
+  "slotLastUsed": {
+    "message": "Dernier utilisé"
+  },
+  "openInLabel": {
+    "message": "À la validation, ouvrir :"
+  },
+  "openInNewTab": {
+    "message": "dans un nouvel onglet (Ctrl+Entrée : onglet actif)"
+  },
+  "openInCurrentTab": {
+    "message": "dans l'onglet actif (Ctrl+Entrée : nouvel onglet)"
+  },
+  "sectionBackup": {
+    "message": "Sauvegarde"
+  },
+  "backupHint": {
+    "message": "Redirections, environnements et recherches sont synchronisés avec votre compte Chrome. L'export permet de les partager avec un collègue."
+  },
+  "exportBtn": {
+    "message": "Exporter (JSON)"
+  },
+  "importBtn": {
+    "message": "Importer (JSON)"
+  },
+  "exportDone": {
+    "message": "$1 redirection(s), $2 environnement(s) et $3 recherche(s) exportés."
+  },
+  "importDone": {
+    "message": "Importé : $1 redirection(s), $2 environnement(s), $3 recherche(s). Pensez à accorder les autorisations."
+  },
+  "importNothing": {
+    "message": "Rien à importer (doublons ou entrées invalides)."
+  },
+  "importFailed": {
+    "message": "Import impossible : $1"
+  },
+  "statusSaved": {
+    "message": "Enregistré."
+  },
+  "statusRedirectsOn": {
+    "message": "Redirections activées."
+  },
+  "statusRedirectsOff": {
+    "message": "Redirections mises en pause."
+  },
+  "statusPermissionsGranted": {
+    "message": "Autorisations accordées."
+  },
+  "statusPermissionError": {
+    "message": "Autorisation impossible : $1"
+  },
+  "statusMaxRedirects": {
+    "message": "Maximum de $1 redirections atteint."
+  },
+  "statusMaxEnvironments": {
+    "message": "Maximum de $1 environnements atteint."
+  },
+  "statusMaxSearches": {
+    "message": "Maximum de $1 recherches atteint."
+  },
+  "popupPauseTitle": {
+    "message": "Suspendre toutes les redirections"
+  },
+  "popupTabLabel": {
+    "message": "Onglet actif"
+  },
+  "popupLoading": {
+    "message": "Chargement…"
+  },
+  "popupNotRedirectable": {
+    "message": "Cette page ne peut pas être redirigée."
+  },
+  "popupBypassedThis": {
+    "message": "Redirection désactivée pour cet onglet."
+  },
+  "popupBypassedAll": {
+    "message": "Redirections désactivées pour cet onglet."
+  },
+  "popupReenable": {
+    "message": "Réactiver la redirection"
+  },
+  "popupReenableTab": {
+    "message": "Réactiver la redirection pour cet onglet"
+  },
+  "popupPausedWouldRedirect": {
+    "message": "Redirections en pause : cette URL serait redirigée."
+  },
+  "popupOpenRedirected": {
+    "message": "Ouvrir la version redirigée"
+  },
+  "popupMissingPermission": {
+    "message": "Autorisation manquante pour appliquer la redirection."
+  },
+  "popupAllowDomains": {
+    "message": "Autoriser les domaines"
+  },
+  "popupRedirecting": {
+    "message": "Redirection en cours…"
+  },
+  "popupTargetOf": {
+    "message": "Domaine cible de $1."
+  },
+  "popupOpenWithout": {
+    "message": "Ouvrir $1 sans redirection"
+  },
+  "popupNoRedirect": {
+    "message": "Aucune redirection pour ce domaine."
+  },
+  "popupCreateRedirect": {
+    "message": "Rediriger $1 vers…"
+  },
+  "popupOpenLauncher": {
+    "message": "Ouvrir le lanceur de recherche"
+  },
+  "popupManage": {
+    "message": "Gérer les redirections…"
+  },
+  "launcherTitle": {
+    "message": "Lanceur de recherche"
+  },
+  "phLauncherQuery": {
+    "message": "Numéro de ticket, identifiant…"
+  },
+  "labelSearch": {
+    "message": "Recherche"
+  },
+  "labelEnvironment": {
+    "message": "Environnement"
+  },
+  "hintEnter": {
+    "message": "[[Entrée]] nouvel onglet"
+  },
+  "hintCtrlEnter": {
+    "message": "[[Ctrl]]+[[Entrée]] onglet actif"
+  },
+  "hintAltNum": {
+    "message": "[[Alt]]+[[1…9]] environnement"
+  },
+  "hintEsc": {
+    "message": "[[Échap]] fermer"
+  },
+  "launcherEmptyTitle": {
+    "message": "Le lanceur n'est pas encore configuré."
+  },
+  "launcherEmptyNeedEnv": {
+    "message": "Ajoutez au moins un environnement (l'URL de base) pour lancer une recherche."
+  },
+  "launcherEmptyNeedSearch": {
+    "message": "Ajoutez une recherche (par exemple « Ticket » → /tickets/{q}) et un environnement."
+  },
+  "launcherConfigure": {
+    "message": "Ouvrir la configuration"
+  },
+  "pinnedEnvironmentTitle": {
+    "message": "Cette recherche utilise toujours cet environnement."
+  },
+  "launchErrNoSearch": {
+    "message": "Aucune recherche configurée."
+  },
+  "launchErrInvalidSearch": {
+    "message": "Le modèle d'URL de cette recherche est invalide."
+  },
+  "launchErrEmptyQuery": {
+    "message": "Saisissez une valeur (numéro de ticket, identifiant…)."
+  },
+  "launchErrMissingEnvironment": {
+    "message": "Aucun environnement configuré."
+  },
+  "launchErrUnsupportedScheme": {
+    "message": "Seules les URL http:// et https:// peuvent être ouvertes."
+  },
+  "launchErrInvalidUrl": {
+    "message": "L'URL obtenue est invalide."
+  },
+  "launchErrGeneric": {
+    "message": "Impossible de construire l'URL."
+  },
+  "actionTitlePaused": {
+    "message": "Redirection de domaines — en pause"
+  },
+  "actionTitleActive": {
+    "message": "Redirection de domaines — $1 redirection(s) active(s)"
+  },
+  "exampleSearchTicket": {
+    "message": "Ticket"
+  },
+  "exampleSearchContact": {
+    "message": "Contact"
+  },
+  "exampleSearchOrder": {
+    "message": "Commande"
+  }
+}

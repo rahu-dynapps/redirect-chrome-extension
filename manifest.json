@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Redirection de domaines",
-  "version": "1.1.0",
-  "description": "Redirige des domaines en conservant chemin et paramètres, et ouvre un ticket ou une fiche via un raccourci clavier.",
+  "default_locale": "en",
+  "name": "__MSG_extName__",
+  "version": "1.2.0",
+  "description": "__MSG_extDescription__",
   "homepage_url": "https://github.com/rahu-dynapps/redirect-chrome-extension",
   "minimum_chrome_version": "108",
   "permissions": [
@@ -22,7 +23,7 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "Redirection de domaines",
+    "default_title": "__MSG_extName__",
     "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -42,16 +43,16 @@
       "suggested_key": {
         "default": "Alt+Shift+O"
       },
-      "description": "Ouvrir le lanceur de recherche"
+      "description": "__MSG_cmdOpenLauncher__"
     },
     "quick-1": {
-      "description": "Lanceur — raccourci rapide 1 (à configurer)"
+      "description": "__MSG_cmdQuick1__"
     },
     "quick-2": {
-      "description": "Lanceur — raccourci rapide 2 (à configurer)"
+      "description": "__MSG_cmdQuick2__"
     },
     "quick-3": {
-      "description": "Lanceur — raccourci rapide 3 (à configurer)"
+      "description": "__MSG_cmdQuick3__"
     }
   }
 }

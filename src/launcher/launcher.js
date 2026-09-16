@@ -1,4 +1,5 @@
-import { LAUNCH_ERRORS, isSearchUsable, resolveLaunch } from '../lib/launcher.js';
+import { applyI18n, t } from '../lib/i18n.js';
+import { LAUNCH_ERROR_KEYS, isSearchUsable, resolveLaunch } from '../lib/launcher.js';
 import { loadLauncher, saveLauncher } from '../lib/storage.js';
 
 const $ = (selector) => document.querySelector(selector);
@@ -12,6 +13,7 @@ let active = { searchId: '', environmentId: '' };
 init();
 
 async function init() {
+  applyI18n();
   state = await loadLauncher();
   const usableSearches = state.searches.filter(isSearchUsable);
 
@@ -24,10 +26,11 @@ async function init() {
   active.searchId = preset?.searchId || state.launcher.lastSearchId || usableSearches[0].id;
   active.environmentId = preset?.environmentId || state.launcher.lastEnvironmentId || state.environments[0]?.id || '';
 
-  fillSelect($('#search'), usableSearches, active.searchId, (s) =>
-    s.keyword ? `${s.label} (${s.keyword})` : s.label
-  );
-  fillSelect($('#environment'), state.environments, active.environmentId, (e) => e.label);
+  fillSelect($('#search'), usableSearches, active.searchId, (search) => {
+    const label = search.label || t('unnamed');
+    return search.keyword ? `${label} (${search.keyword})` : label;
+  });
+  fillSelect($('#environment'), state.environments, active.environmentId, (env) => env.label || t('unnamed'));
 
   $('#query').addEventListener('input', update);
   $('#query').addEventListener('keydown', onKeyDown);
@@ -55,11 +58,11 @@ function hasEnvironmentIfNeeded(searches) {
 function showEmptyState(usableSearches) {
   $('#form').hidden = true;
   $('#empty').hidden = false;
-  $('#empty-detail').textContent = usableSearches.length
-    ? 'Ajoutez au moins un environnement (l’URL de base de l’instance) pour lancer une recherche.'
-    : 'Ajoutez une recherche (par exemple « Ticket » → /odoo/helpdesk/{q}) et un environnement.';
+  $('#empty-detail').textContent = t(
+    usableSearches.length ? 'launcherEmptyNeedEnv' : 'launcherEmptyNeedSearch'
+  );
   $('#configure').addEventListener('click', () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('src/options/options.html#lanceur') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('src/options/options.html#launcher') });
     window.close();
   });
   $('#configure').focus();
@@ -84,18 +87,16 @@ function update() {
   const envSelect = $('#environment');
   envSelect.disabled = resolution.pinnedEnvironment;
   if (resolution.environment) envSelect.value = resolution.environment.id;
-  envSelect.title = resolution.pinnedEnvironment
-    ? 'Cette recherche utilise toujours cet environnement.'
-    : '';
+  envSelect.title = resolution.pinnedEnvironment ? t('pinnedEnvironmentTitle') : '';
 
   if (resolution.result.ok) {
     preview.className = 'preview';
     preview.textContent = `→ ${resolution.result.url}`;
     return;
   }
-  const message = LAUNCH_ERRORS[resolution.result.error] ?? 'Impossible de construire l’URL.';
+  const messageKey = LAUNCH_ERROR_KEYS[resolution.result.error] ?? 'launchErrGeneric';
   preview.className = resolution.result.error === 'empty-query' ? 'preview muted' : 'preview error';
-  preview.textContent = message;
+  preview.textContent = t(messageKey);
 }
 
 function onKeyDown(event) {

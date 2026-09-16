@@ -1,0 +1,446 @@
+{
+  "extName": {
+    "message": "Domain Redirect & Launch"
+  },
+  "extDescription": {
+    "message": "Redirects domains while keeping path and parameters, and opens a page from a typed ID via a keyboard shortcut."
+  },
+  "cmdOpenLauncher": {
+    "message": "Open the search launcher"
+  },
+  "cmdQuick1": {
+    "message": "Launcher — quick shortcut 1 (to be assigned)"
+  },
+  "cmdQuick2": {
+    "message": "Launcher — quick shortcut 2 (to be assigned)"
+  },
+  "cmdQuick3": {
+    "message": "Launcher — quick shortcut 3 (to be assigned)"
+  },
+  "optionsTitle": {
+    "message": "Domain Redirect & Launch — Options"
+  },
+  "appTagline": {
+    "message": "Rewrites the domain of a URL while keeping path, query and fragment, and opens a page from a keyboard shortcut."
+  },
+  "redirectsEnabled": {
+    "message": "Redirects enabled"
+  },
+  "tabRedirects": {
+    "message": "Redirects"
+  },
+  "tabLauncher": {
+    "message": "Search launcher"
+  },
+  "permBannerTitle": {
+    "message": "Missing permissions."
+  },
+  "permBannerText": {
+    "message": "Chrome requires explicit access to both the source and target domains before it can redirect."
+  },
+  "permGrantAll": {
+    "message": "Allow all domains"
+  },
+  "sectionRedirects": {
+    "message": "Redirects"
+  },
+  "addRedirect": {
+    "message": "Add a redirect"
+  },
+  "redirectsHint": {
+    "message": "The first redirect whose source domain matches is applied. Reorder with the arrows if several rules overlap."
+  },
+  "redirectsEmpty": {
+    "message": "No redirect yet. Example: `helpdesk.example.com` → `app-1234.hosting.example.com`."
+  },
+  "fieldSourceDomain": {
+    "message": "Source domain (the alias)"
+  },
+  "fieldTargetDomain": {
+    "message": "Target domain"
+  },
+  "phSourceDomain": {
+    "message": "helpdesk.example.com"
+  },
+  "phTargetDomain": {
+    "message": "app-1234.hosting.example.com"
+  },
+  "toggleEnableRule": {
+    "message": "Enable or disable this redirect"
+  },
+  "btnEnable": {
+    "message": "Enable"
+  },
+  "btnUp": {
+    "message": "Move up"
+  },
+  "btnDown": {
+    "message": "Move down"
+  },
+  "btnDelete": {
+    "message": "Delete"
+  },
+  "optSubdomains": {
+    "message": "Include subdomains"
+  },
+  "optForceHttps": {
+    "message": "Force HTTPS"
+  },
+  "optSubframes": {
+    "message": "Also redirect iframes"
+  },
+  "phNote": {
+    "message": "Note (e.g. customer name)"
+  },
+  "msgIncomplete": {
+    "message": "Fill in both the source and the target domain."
+  },
+  "msgMissingPermission": {
+    "message": "Chrome must be allowed to access $1 and $2."
+  },
+  "btnAllow": {
+    "message": "Allow"
+  },
+  "confirmDelete": {
+    "message": "Delete $1?"
+  },
+  "thisRedirect": {
+    "message": "this redirect"
+  },
+  "errHostEmpty": {
+    "message": "Enter a domain name."
+  },
+  "errHostInvalid": {
+    "message": "“$1” is not a valid domain name."
+  },
+  "errHostScheme": {
+    "message": "Only http:// and https:// domains are supported."
+  },
+  "errHostPort": {
+    "message": "Invalid port in “$1”."
+  },
+  "errSameHost": {
+    "message": "The source and target domains are identical."
+  },
+  "errFieldSource": {
+    "message": "Source domain: $1"
+  },
+  "errFieldTarget": {
+    "message": "Target domain: $1"
+  },
+  "testTitle": {
+    "message": "Test a URL"
+  },
+  "testHint": {
+    "message": "Paste a URL you received to check where it will be redirected."
+  },
+  "phTestUrl": {
+    "message": "https://helpdesk.example.com/tickets/42?debug=1#tab=notes"
+  },
+  "testRun": {
+    "message": "Test"
+  },
+  "testEmpty": {
+    "message": "Enter a URL."
+  },
+  "testInvalidUrl": {
+    "message": "Invalid URL."
+  },
+  "testUnsupportedScheme": {
+    "message": "Only http:// and https:// URLs can be redirected."
+  },
+  "testPaused": {
+    "message": "Redirects are paused (switch at the top of the page)."
+  },
+  "testNoMatch": {
+    "message": "No redirect matches: this URL will open as is."
+  },
+  "testMissingPermission": {
+    "message": "(missing permission: the redirect will not apply)"
+  },
+  "sectionEnvironments": {
+    "message": "Environments"
+  },
+  "addEnvironment": {
+    "message": "Add an environment"
+  },
+  "environmentsHint": {
+    "message": "The base URL a search runs against: a production instance, a test environment… The launcher switches between them ([[Alt]]+[[1…9]])."
+  },
+  "environmentsEmpty": {
+    "message": "No environment yet. Example: `https://app-1234.hosting.example.com`."
+  },
+  "fieldName": {
+    "message": "Name"
+  },
+  "fieldBaseUrl": {
+    "message": "Base URL"
+  },
+  "phEnvName": {
+    "message": "Production"
+  },
+  "phBaseUrl": {
+    "message": "https://app-1234.hosting.example.com"
+  },
+  "errBaseUrlEmpty": {
+    "message": "Enter the base URL of the environment."
+  },
+  "errBaseUrlInvalid": {
+    "message": "“$1” is not a valid URL."
+  },
+  "confirmDeleteEnvironment": {
+    "message": "Delete the environment “$1”?"
+  },
+  "sectionSearches": {
+    "message": "Searches"
+  },
+  "addSearch": {
+    "message": "Add a search"
+  },
+  "searchesHint": {
+    "message": "The URL template contains `{q}`, replaced by the value typed in the launcher. Relative to the environment (`/tickets/{q}`) or absolute (`https://support.example.com/t/{q}`). Hash-based URLs work too: `/app#id={q}&model=ticket`. The keyword selects the search from the input field: `t 1234`."
+  },
+  "searchesEmpty": {
+    "message": "No search configured."
+  },
+  "fieldKeyword": {
+    "message": "Keyword"
+  },
+  "fieldUrlTemplate": {
+    "message": "URL template"
+  },
+  "fieldEnvironment": {
+    "message": "Environment"
+  },
+  "phSearchName": {
+    "message": "Ticket"
+  },
+  "phKeyword": {
+    "message": "t"
+  },
+  "phTemplate": {
+    "message": "/tickets/{q}"
+  },
+  "envChosenInLauncher": {
+    "message": "Chosen in the launcher"
+  },
+  "errTemplateEmpty": {
+    "message": "Enter the URL template."
+  },
+  "errTemplateNoPlaceholder": {
+    "message": "The template must contain {q}, replaced by the value you type."
+  },
+  "errDuplicateKeyword": {
+    "message": "The keyword “$1” is already used."
+  },
+  "confirmDeleteSearch": {
+    "message": "Delete the search “$1”?"
+  },
+  "unnamed": {
+    "message": "Unnamed"
+  },
+  "sectionShortcuts": {
+    "message": "Keyboard shortcuts"
+  },
+  "shortcutsHint": {
+    "message": "The launcher opens with [[Alt]]+[[Shift]]+[[O]] by default. Chrome lets you pick any combination, and assign a key to the three quick shortcuts below, which open the launcher directly on a given search and environment."
+  },
+  "openShortcuts": {
+    "message": "Configure shortcuts in Chrome"
+  },
+  "slotName": {
+    "message": "Quick shortcut $1"
+  },
+  "slotLastUsed": {
+    "message": "Last used"
+  },
+  "openInLabel": {
+    "message": "On submit, open:"
+  },
+  "openInNewTab": {
+    "message": "in a new tab (Ctrl+Enter: active tab)"
+  },
+  "openInCurrentTab": {
+    "message": "in the active tab (Ctrl+Enter: new tab)"
+  },
+  "sectionBackup": {
+    "message": "Backup"
+  },
+  "backupHint": {
+    "message": "Redirects, environments and searches are synced with your Chrome account. Export lets you share them with a colleague."
+  },
+  "exportBtn": {
+    "message": "Export (JSON)"
+  },
+  "importBtn": {
+    "message": "Import (JSON)"
+  },
+  "exportDone": {
+    "message": "$1 redirect(s), $2 environment(s) and $3 search(es) exported."
+  },
+  "importDone": {
+    "message": "Imported: $1 redirect(s), $2 environment(s), $3 search(es). Remember to grant the permissions."
+  },
+  "importNothing": {
+    "message": "Nothing to import (duplicates or invalid entries)."
+  },
+  "importFailed": {
+    "message": "Import failed: $1"
+  },
+  "statusSaved": {
+    "message": "Saved."
+  },
+  "statusRedirectsOn": {
+    "message": "Redirects enabled."
+  },
+  "statusRedirectsOff": {
+    "message": "Redirects paused."
+  },
+  "statusPermissionsGranted": {
+    "message": "Permissions granted."
+  },
+  "statusPermissionError": {
+    "message": "Permission request failed: $1"
+  },
+  "statusMaxRedirects": {
+    "message": "Maximum of $1 redirects reached."
+  },
+  "statusMaxEnvironments": {
+    "message": "Maximum of $1 environments reached."
+  },
+  "statusMaxSearches": {
+    "message": "Maximum of $1 searches reached."
+  },
+  "popupPauseTitle": {
+    "message": "Pause all redirects"
+  },
+  "popupTabLabel": {
+    "message": "Active tab"
+  },
+  "popupLoading": {
+    "message": "Loading…"
+  },
+  "popupNotRedirectable": {
+    "message": "This page cannot be redirected."
+  },
+  "popupBypassedThis": {
+    "message": "Redirect disabled for this tab."
+  },
+  "popupBypassedAll": {
+    "message": "Redirects disabled for this tab."
+  },
+  "popupReenable": {
+    "message": "Re-enable the redirect"
+  },
+  "popupReenableTab": {
+    "message": "Re-enable redirects for this tab"
+  },
+  "popupPausedWouldRedirect": {
+    "message": "Redirects are paused: this URL would be redirected."
+  },
+  "popupOpenRedirected": {
+    "message": "Open the redirected version"
+  },
+  "popupMissingPermission": {
+    "message": "Missing permission to apply the redirect."
+  },
+  "popupAllowDomains": {
+    "message": "Allow the domains"
+  },
+  "popupRedirecting": {
+    "message": "Redirecting…"
+  },
+  "popupTargetOf": {
+    "message": "Target domain of $1."
+  },
+  "popupOpenWithout": {
+    "message": "Open $1 without redirect"
+  },
+  "popupNoRedirect": {
+    "message": "No redirect for this domain."
+  },
+  "popupCreateRedirect": {
+    "message": "Redirect $1 to…"
+  },
+  "popupOpenLauncher": {
+    "message": "Open the search launcher"
+  },
+  "popupManage": {
+    "message": "Manage redirects…"
+  },
+  "launcherTitle": {
+    "message": "Search launcher"
+  },
+  "phLauncherQuery": {
+    "message": "Ticket number, identifier…"
+  },
+  "labelSearch": {
+    "message": "Search"
+  },
+  "labelEnvironment": {
+    "message": "Environment"
+  },
+  "hintEnter": {
+    "message": "[[Enter]] new tab"
+  },
+  "hintCtrlEnter": {
+    "message": "[[Ctrl]]+[[Enter]] active tab"
+  },
+  "hintAltNum": {
+    "message": "[[Alt]]+[[1…9]] environment"
+  },
+  "hintEsc": {
+    "message": "[[Esc]] close"
+  },
+  "launcherEmptyTitle": {
+    "message": "The launcher is not configured yet."
+  },
+  "launcherEmptyNeedEnv": {
+    "message": "Add at least one environment (the base URL) to run a search."
+  },
+  "launcherEmptyNeedSearch": {
+    "message": "Add a search (for example “Ticket” → /tickets/{q}) and an environment."
+  },
+  "launcherConfigure": {
+    "message": "Open configuration"
+  },
+  "pinnedEnvironmentTitle": {
+    "message": "This search always uses this environment."
+  },
+  "launchErrNoSearch": {
+    "message": "No search configured."
+  },
+  "launchErrInvalidSearch": {
+    "message": "The URL template of this search is invalid."
+  },
+  "launchErrEmptyQuery": {
+    "message": "Type a value (ticket number, identifier…)."
+  },
+  "launchErrMissingEnvironment": {
+    "message": "No environment configured."
+  },
+  "launchErrUnsupportedScheme": {
+    "message": "Only http:// and https:// URLs can be opened."
+  },
+  "launchErrInvalidUrl": {
+    "message": "The resulting URL is invalid."
+  },
+  "launchErrGeneric": {
+    "message": "Cannot build the URL."
+  },
+  "actionTitlePaused": {
+    "message": "Domain Redirect & Launch — paused"
+  },
+  "actionTitleActive": {
+    "message": "Domain Redirect & Launch — $1 active redirect(s)"
+  },
+  "exampleSearchTicket": {
+    "message": "Ticket"
+  },
+  "exampleSearchContact": {
+    "message": "Contact"
+  },
+  "exampleSearchOrder": {
+    "message": "Order"
+  }
+}

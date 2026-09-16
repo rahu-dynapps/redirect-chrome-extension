@@ -17,7 +17,7 @@ DIST = ROOT / "dist"
 
 # Ce qui part dans l'archive : le strict nécessaire au fonctionnement.
 INCLUDE_FILES = ["manifest.json"]
-INCLUDE_DIRS = ["icons", "src"]
+INCLUDE_DIRS = ["icons", "src", "_locales"]
 EXCLUDE_SUFFIXES = {".md", ".map"}
 
 # Limites imposées par le Chrome Web Store.
@@ -29,18 +29,16 @@ warnings: list[str] = []
 
 
 def check_manifest(manifest: dict) -> None:
-    name = manifest.get("name", "")
-    description = manifest.get("description", "")
     version = manifest.get("version", "")
 
-    if not name or len(name) > MAX_NAME:
-        errors.append(f"name : {len(name)} caractères (max {MAX_NAME}).")
-    if not description:
-        errors.append("description : absente.")
-    elif len(description) > MAX_DESCRIPTION:
-        errors.append(
-            f"description : {len(description)} caractères, le store refuse au-delà de {MAX_DESCRIPTION}."
-        )
+    for field, limit in (("name", MAX_NAME), ("description", MAX_DESCRIPTION)):
+        for locale, value in resolve_field(manifest, field).items():
+            if not value:
+                errors.append(f"{field} ({locale}) : absent.")
+            elif len(value) > limit:
+                errors.append(
+                    f"{field} ({locale}) : {len(value)} caractères, le store refuse au-delà de {limit}."
+                )
     if not re.fullmatch(r"\d+(\.\d+){0,3}", version):
         errors.append(f"version : « {version} » doit être 1 à 4 entiers séparés par des points.")
     if manifest.get("manifest_version") != 3:
@@ -52,12 +50,88 @@ def check_manifest(manifest: dict) -> None:
         warnings.append("author : Chrome attend un objet {\"email\": \"…\"} ; la chaîne est ignorée.")
 
 
+def resolve_field(manifest: dict, field: str) -> dict[str, str]:
+    """Valeur du champ par langue : un __MSG_cle__ est résolu dans chaque _locales/<langue>."""
+    raw = manifest.get(field, "")
+    match = re.fullmatch(r"__MSG_(\w+)__", raw)
+    if not match:
+        return {"manifest": raw}
+    key = match.group(1)
+    values = {}
+    for messages_path in sorted((ROOT / "_locales").glob("*/messages.json")):
+        locale = messages_path.parent.name
+        messages = json.loads(messages_path.read_text(encoding="utf-8"))
+        values[locale] = messages.get(key, {}).get("message", "")
+        if key not in messages:
+            errors.append(f"_locales/{locale}/messages.json : message « {key} » manquant.")
+    if not values:
+        errors.append(f"{field} : __MSG_{key}__ mais aucun catalogue dans _locales/.")
+    return values
+
+
+def check_locales(manifest: dict) -> None:
+    """Le store exige un catalogue complet pour la langue par défaut."""
+    default_locale = manifest.get("default_locale")
+    if not default_locale:
+        if (ROOT / "_locales").exists():
+            errors.append("default_locale : requis dès qu'un dossier _locales/ est présent.")
+        return
+    if not (ROOT / "_locales" / default_locale / "messages.json").exists():
+        errors.append(f"_locales/{default_locale}/messages.json : absent alors qu'il est la langue par défaut.")
+        return
+
+    reference = json.loads((ROOT / "_locales" / default_locale / "messages.json").read_text(encoding="utf-8"))
+    for messages_path in sorted((ROOT / "_locales").glob("*/messages.json")):
+        locale = messages_path.parent.name
+        if locale == default_locale:
+            continue
+        messages = json.loads(messages_path.read_text(encoding="utf-8"))
+        missing = sorted(set(reference) - set(messages))
+        extra = sorted(set(messages) - set(reference))
+        if missing:
+            warnings.append(f"_locales/{locale} : {len(missing)} message(s) non traduit(s) — {', '.join(missing[:5])}…")
+        if extra:
+            warnings.append(f"_locales/{locale} : {len(extra)} message(s) inconnu(s) — {', '.join(extra[:5])}…")
+
+
 def check_references(manifest: dict) -> None:
     """Tout fichier cité par le manifest doit exister et être inclus dans l'archive."""
     refs = set(re.findall(r'"([^"]+\.(?:png|js|html|css|json))"', json.dumps(manifest)))
     for ref in sorted(refs):
         if not (ROOT / ref).exists():
             errors.append(f"fichier manquant : {ref}")
+
+
+def check_i18n_keys(manifest: dict) -> None:
+    """Toute clé utilisée par l'interface doit exister dans la langue par défaut, et inversement."""
+    default_locale = manifest.get("default_locale")
+    path = ROOT / "_locales" / (default_locale or "") / "messages.json"
+    if not default_locale or not path.exists():
+        return
+    known = set(json.loads(path.read_text(encoding="utf-8")))
+
+    sources = {p: p.read_text(encoding="utf-8") for p in (ROOT / "src").rglob("*") if p.suffix in {".html", ".js"}}
+    manifest_text = json.dumps(manifest, ensure_ascii=False)
+
+    # Clés explicitement demandées : attributs data-i18n* et appels t('clé').
+    requested: set[str] = set()
+    for source, text in sources.items():
+        if source.suffix == ".html":
+            requested |= set(re.findall(r'data-i18n(?:-\w+)?="([^"]+)"', text))
+        else:
+            requested |= set(re.findall(r"\bt\(\s*'([A-Za-z0-9_]+)'", text))
+    for key in sorted(requested - known):
+        errors.append(f"message « {key} » utilisé par l'interface mais absent de _locales/{default_locale}.")
+
+    # Clés atteintes indirectement (tables de correspondance, codes d'erreur) : simple présence textuelle.
+    referenced = {
+        key
+        for key in known
+        if any(f"'{key}'" in text for text in sources.values()) or f"__MSG_{key}__" in manifest_text
+    }
+    unused = sorted(known - requested - referenced)
+    if unused:
+        warnings.append(f"{len(unused)} message(s) jamais utilisé(s) : {', '.join(unused)}")
 
 
 def check_no_remote_code() -> None:
@@ -82,6 +156,8 @@ def collect_files() -> list[Path]:
 def main() -> int:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     check_manifest(manifest)
+    check_locales(manifest)
+    check_i18n_keys(manifest)
     check_references(manifest)
     check_no_remote_code()
 
@@ -93,7 +169,10 @@ def main() -> int:
     for warning in warnings:
         print(f"  ! {warning}")
 
-    slug = re.sub(r"[^a-z0-9]+", "-", manifest["name"].lower()).strip("-")
+    default_locale = manifest.get("default_locale", "manifest")
+    names = resolve_field(manifest, "name")
+    slug = re.sub(r"[^a-z0-9]+", "-", next(iter(names.get(default_locale, "extension").split("&")))
+                  .strip().lower()).strip("-")
     DIST.mkdir(exist_ok=True)
     target = DIST / f"{slug}-v{manifest['version']}.zip"
 
@@ -103,9 +182,11 @@ def main() -> int:
             archive.write(path, path.relative_to(ROOT).as_posix())
 
     print(f"✓ {target.relative_to(ROOT)} — {len(files)} fichiers, {target.stat().st_size / 1024:.1f} Ko")
-    print(f"  nom         : {manifest['name']}")
+    for locale, value in resolve_field(manifest, "name").items():
+        print(f"  nom ({locale})  : {value}")
     print(f"  version     : {manifest['version']}")
-    print(f"  description : {len(manifest['description'])}/{MAX_DESCRIPTION} caractères")
+    for locale, value in resolve_field(manifest, "description").items():
+        print(f"  description ({locale}) : {len(value)}/{MAX_DESCRIPTION} caractères")
     print("  À envoyer tel quel dans le Developer Dashboard (manifest.json est à la racine de l'archive).")
     return 0
 

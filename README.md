@@ -1,185 +1,185 @@
-# Redirection de domaines + lanceur de recherche — extension Chrome
+# Domain Redirect & Launch — Chrome extension
 
-Extension Chrome (Manifest V3) qui rend deux services au quotidien :
+*[Version française](README.fr.md)*
 
-1. **Redirection de domaines** — réécrit l'hôte d'une URL **en conservant le chemin, les paramètres de
-   requête et l'ancre**.
-2. **Lanceur de recherche** — un raccourci clavier ouvre une petite fenêtre : on saisit un numéro de
-   ticket (ou tout autre identifiant), la page correspondante s'ouvre sur l'environnement choisi.
+A Manifest V3 Chrome extension that does two everyday things:
 
-Cas d'usage d'origine : dans Odoo, une base est accessible via l'URL de base fournie par Odoo.sh
-(`client-prod-1234.odoo.com`) alors que les utilisateurs communiquent des liens contenant l'alias du
-client (`odoo.client.fr`).
+1. **Domain redirect** — rewrites the domain of a URL **while keeping the path, query string and
+   fragment**.
+2. **Search launcher** — a keyboard shortcut opens a small window: type a ticket number (or any
+   identifier) and the matching page opens on the environment you picked.
+
+The original use case: users share links that use a public alias, while you work on the technical
+URL of the instance (or the other way round).
 
 ```
-https://odoo.client.fr/odoo/action-42?debug=assets#id=7
+https://helpdesk.example.com/tickets/42?debug=assets#tab=notes
         ↓
-https://client-prod-1234.odoo.com/odoo/action-42?debug=assets#id=7
+https://app-1234.hosting.example.com/tickets/42?debug=assets#tab=notes
 ```
 
-## Installation
+The interface is available in **English** (default) and **French**; it follows your Chrome language.
 
-1. Cloner ou télécharger ce dépôt.
-2. Ouvrir `chrome://extensions` et activer le **Mode développeur** (en haut à droite).
-3. Cliquer sur **Charger l'extension non empaquetée** et sélectionner le dossier du dépôt.
-4. La page d'options s'ouvre automatiquement à la première installation : ajouter une redirection,
-   puis accepter la demande d'autorisation d'accès aux deux domaines.
+## Install
 
-Fonctionne également sur Edge, Brave, Opera et les autres navigateurs basés sur Chromium (≥ 108).
+1. Clone or download this repository.
+2. Open `chrome://extensions` and turn on **Developer mode** (top right).
+3. Click **Load unpacked** and select the repository folder.
+4. The options page opens on first install: add a redirect, then accept the permission prompt for
+   both domains.
 
-## 1. Redirections
+Also works on Edge, Brave, Opera and other Chromium-based browsers (≥ 108).
 
-### Page d'options → onglet « Redirections »
+## 1. Redirects
 
-- **Ajouter une redirection** : domaine source (l'alias) → domaine cible. Les deux champs acceptent
-  aussi bien `odoo.client.fr` qu'une URL complète collée depuis un mail : seul l'hôte est conservé.
-- **Inclure les sous-domaines** : `*.odoo.client.fr` est redirigé vers le domaine cible.
-- **Forcer HTTPS** : les URL en `http://` sont redirigées vers `https://`.
-- **Rediriger aussi les iframes** : par défaut, seule la navigation principale est redirigée, ce qui
-  évite de casser les contenus intégrés.
-- **Ordre** : la première redirection dont le domaine source correspond l'emporte ; les flèches ↑ ↓
-  permettent de réordonner.
-- **Tester une URL** : colle une URL et affiche la destination calculée, sans naviguer.
+### Options page → “Redirects” tab
 
-### Popup (icône de la barre d'outils)
+- **Add a redirect**: source domain (the alias) → target domain. Both fields accept a bare hostname
+  as well as a full URL pasted from an email — only the host is kept.
+- **Include subdomains**: `*.helpdesk.example.com` is redirected to the target domain.
+- **Force HTTPS**: `http://` URLs are redirected to `https://`.
+- **Also redirect iframes**: by default only top-level navigation is redirected, which avoids
+  breaking embedded content.
+- **Order**: the first redirect whose source domain matches wins; reorder with the ↑ ↓ arrows.
+- **Test a URL**: paste a URL and see the computed destination without navigating.
 
-- État de l'onglet courant (domaine, redirection appliquée ou non).
-- **Ouvrir `alias` sans redirection** : accède au domaine source sans être redirigé — utile pour
-  consulter l'alias lui-même. La dérogation ne vaut que pour cet onglet et disparaît à sa fermeture.
-- **Rediriger ce domaine vers…** : crée une redirection pré-remplie avec le domaine affiché.
-- Interrupteur global pour suspendre toutes les redirections (badge `OFF` sur l'icône).
+### Popup (toolbar icon)
 
-### Fonctionnement
+- State of the current tab (domain, redirect applied or not).
+- **Open `alias` without redirect**: reach the source domain without being redirected — useful to
+  visit the alias itself. The bypass only applies to that tab and disappears when it closes.
+- **Redirect this domain to…**: creates a redirect pre-filled with the domain shown.
+- Global switch to pause every redirect (`OFF` badge on the icon).
 
-L'extension utilise l'API `declarativeNetRequest` : Chrome applique les règles lui-même, avant même
-que la requête ne parte. L'extension ne lit ni ne modifie le contenu des pages.
+### How it works
+
+The extension uses the `declarativeNetRequest` API: Chrome applies the rules itself, before the
+request is even sent. The extension neither reads nor modifies page content.
 
 ```jsonc
 {
-  "action": { "type": "redirect", "redirect": { "transform": { "host": "client-prod-1234.odoo.com" } } },
+  "action": { "type": "redirect", "redirect": { "transform": { "host": "app-1234.hosting.example.com" } } },
   "condition": {
-    "regexFilter": "^https?://odoo\\.client\\.fr(?::\\d+)?(?:[/?#].*)?$",
+    "regexFilter": "^https?://helpdesk\\.example\\.com(?::\\d+)?(?:[/?#].*)?$",
     "resourceTypes": ["main_frame"]
   }
 }
 ```
 
-`transform.host` ne remplace que l'hôte : chemin, paramètres et ancre sont conservés tels quels
-(l'ancre n'est pas envoyée au serveur, le navigateur la réapplique à l'URL de destination — les liens
-Odoo du type `#id=42&model=res.partner` restent donc valides).
+`transform.host` replaces the host only: path, query and fragment are kept as they are (the fragment
+never reaches the server — the browser re-applies it to the destination URL, so links such as
+`#id=42&model=contact` keep working).
 
-## 2. Lanceur de recherche
+## 2. Search launcher
 
-<kbd>Alt</kbd>+<kbd>Maj</kbd>+<kbd>O</kbd> (modifiable, voir plus bas) ouvre une petite fenêtre :
+<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd> by default (see below to change it) opens a small
+window:
 
 ```
-┌──────────────────────────────────────────────┐
-│  1234                                        │
-│  Recherche : Ticket (t)   Environnement : Prod │
-│  → https://client-prod-1234.odoo.com/odoo/helpdesk/1234 │
-└──────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│  1234                                                 │
+│  Search: Ticket (t)        Environment: Production     │
+│  → https://app-1234.hosting.example.com/tickets/1234   │
+└───────────────────────────────────────────────────────┘
 ```
 
-- <kbd>Entrée</kbd> ouvre l'URL dans un nouvel onglet, <kbd>Ctrl</kbd>+<kbd>Entrée</kbd> dans
-  l'onglet actif (l'ordre par défaut est réglable dans les options), <kbd>Échap</kbd> ferme.
-- <kbd>Alt</kbd>+<kbd>1…9</kbd> bascule d'environnement sans lâcher le clavier.
-- Un **mot-clé** en préfixe choisit la recherche : `t 1234` ouvre le ticket 1234, `c 57` la fiche
-  contact 57, quelle que soit la recherche sélectionnée dans la liste.
-- L'URL finale est prévisualisée en direct sous le champ de saisie.
+- <kbd>Enter</kbd> opens the URL in a new tab, <kbd>Ctrl</kbd>+<kbd>Enter</kbd> in the active tab
+  (the default order is configurable), <kbd>Esc</kbd> closes.
+- <kbd>Alt</kbd>+<kbd>1…9</kbd> switches environment without leaving the keyboard.
+- A **keyword** prefix picks the search: `t 1234` opens ticket 1234, `c 57` contact 57, whatever is
+  selected in the dropdown.
+- The resulting URL is previewed live under the input.
 
-### Environnements
+### Environments
 
-Un environnement est une **URL de base** : `https://client-prod-1234.odoo.com`, une base de test,
-un poste local `http://localhost:8069`… Un préfixe de chemin est accepté
-(`https://erp.client.fr/odoo`). Le lanceur mémorise le dernier environnement utilisé.
+An environment is a **base URL**: `https://app-1234.hosting.example.com`, a test instance, a local
+server `http://localhost:8069`… A path prefix is supported (`https://erp.example.com/app`). The
+launcher remembers the last environment used.
 
-### Recherches
+### Searches
 
-Une recherche est un **modèle d'URL contenant `{q}`**, remplacé par la valeur saisie (encodée) :
+A search is a **URL template containing `{q}`**, replaced by the value you type (URL-encoded):
 
-| Recherche            | Modèle                                                   |
-| -------------------- | -------------------------------------------------------- |
-| Ticket (Odoo 17+)    | `/odoo/helpdesk/{q}`                                      |
-| Contact (Odoo 17+)   | `/odoo/contacts/{q}`                                      |
-| Ticket (Odoo ≤ 16)   | `/web#id={q}&model=helpdesk.ticket&view_type=form`        |
-| Recherche texte      | `/odoo/contacts?search={q}`                               |
-| Outil externe        | `https://support.example.com/t/{q}` (modèle absolu)       |
+| Search           | Template                                            |
+| ---------------- | --------------------------------------------------- |
+| Ticket           | `/tickets/{q}`                                       |
+| Contact          | `/contacts/{q}`                                      |
+| Hash-based app   | `/app#id={q}&model=ticket`                           |
+| Full-text search | `/contacts?search={q}`                               |
+| External tool    | `https://support.example.com/t/{q}` (absolute)       |
 
-- Un modèle **relatif** est ajouté à l'environnement sélectionné ; un modèle **absolu**
-  (`https://…`) ignore l'environnement.
-- Chaque recherche peut **épingler un environnement** : utile pour une recherche qui n'a de sens que
-  sur un environnement précis (supervision, outil tiers…).
-- Trois recherches d'exemple sont créées à la première installation ; elles sont modifiables et
-  supprimables.
+- A **relative** template is appended to the selected environment; an **absolute** one
+  (`https://…`) ignores the environment.
+- Each search can **pin an environment**, for a search that only makes sense on one of them.
+- Three example searches are created on first install; edit or delete them freely.
 
-### Choisir ses raccourcis clavier
+### Choosing your shortcuts
 
-Le bouton **« Configurer les raccourcis dans Chrome »** (onglet « Lanceur ») ouvre
-`chrome://extensions/shortcuts`, où n'importe quelle combinaison peut être attribuée :
+The **“Configure shortcuts in Chrome”** button (Launcher tab) opens
+`chrome://extensions/shortcuts`, where any combination can be assigned:
 
-- `Ouvrir le lanceur de recherche` — <kbd>Alt</kbd>+<kbd>Maj</kbd>+<kbd>O</kbd> par défaut ;
-- `Raccourci rapide 1 à 3` — sans touche par défaut. Chacun s'associe dans les options à une
-  recherche et à un environnement, et ouvre le lanceur directement dessus : par exemple
-  <kbd>Alt</kbd>+<kbd>T</kbd> pour « Ticket sur la production ».
+- `Open the search launcher` — <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd> by default;
+- `Quick shortcut 1 to 3` — no default key. Each one is bound in the options to a search and an
+  environment, and opens the launcher straight onto it: for example <kbd>Alt</kbd>+<kbd>T</kbd> for
+  “Ticket on production”.
 
-## Autorisations
+## Permissions
 
-- `declarativeNetRequest` : appliquer les règles de redirection.
-- `storage` : enregistrer redirections, environnements et recherches (synchronisés avec le compte
-  Chrome).
-- `tabs` : connaître l'URL de l'onglet actif (popup) et ouvrir l'URL construite par le lanceur.
-- Accès aux sites : **demandé à la carte**, uniquement pour les domaines source et cible de chaque
-  redirection. Chrome exige l'accès aux deux. Une redirection sans autorisation est signalée en
-  orange dans la page d'options avec un bouton « Autoriser ». Le lanceur, lui, ne nécessite aucune
-  autorisation de site.
+- `declarativeNetRequest` — apply the redirect rules.
+- `storage` — save redirects, environments and searches (synced with your Chrome account).
+- `tabs` — read the active tab URL (popup) and open the URL built by the launcher.
+- Site access — requested **one domain at a time**, only for the source and target of each redirect.
+  Chrome requires both. A redirect without permission is flagged in orange on the options page with
+  an “Allow” button. The launcher needs no site access at all.
 
-## Limites connues
+## Known limitations
 
-- Les pages internes (`chrome://`, Chrome Web Store) ne peuvent pas être redirigées.
-- Seuls `http://` et `https://` sont pris en charge.
-- Le domaine source d'une redirection doit être un nom d'hôte (pas de motif sur le chemin) ;
-  utilisez l'option sous-domaines pour couvrir plusieurs hôtes.
-- Chrome limite le nombre de raccourcis proposés par défaut : les raccourcis rapides doivent être
-  attribués manuellement.
-- Maximum 200 redirections, 30 environnements, 50 recherches.
+- Internal pages (`chrome://`, Chrome Web Store) cannot be redirected.
+- Only `http://` and `https://` are supported.
+- A redirect source must be a hostname (no path pattern); use the subdomains option to cover several
+  hosts.
+- Chrome caps the number of suggested default shortcuts: the quick shortcuts must be assigned
+  manually.
+- Up to 200 redirects, 30 environments, 50 searches.
 
-## Développement
+## Development
 
 ```bash
-npm test                      # tests unitaires de la logique pure (node:test)
-npm run package               # vérifie le manifest et produit le ZIP pour le Chrome Web Store
-python3 tools/make_icons.py   # régénère les icônes PNG
+npm test                      # unit tests of the pure logic (node:test)
+npm run package               # validates the manifest and builds the Chrome Web Store ZIP
+python3 tools/make_icons.py   # regenerates the PNG icons
 ```
 
 ```
-manifest.json            # MV3 : permissions, commandes clavier
-src/background.js        # service worker : règles DNR, dérogation par onglet, fenêtre du lanceur
-src/lib/rules.js         # logique pure des redirections (parsing, règles DNR, prévisualisation)
-src/lib/launcher.js      # logique pure du lanceur (environnements, recherches, construction d'URL)
-src/lib/storage.js       # accès à chrome.storage.sync
-src/options/             # page d'options (onglets Redirections / Lanceur)
-src/popup/               # popup de la barre d'outils
-src/launcher/            # petite fenêtre du lanceur
-test/                    # tests des deux modules de logique
-tools/make_icons.py      # génération des icônes
-tools/package.py         # contrôle des limites du store + archive ZIP
-store/listing.md         # textes et checklist pour la publication
-PRIVACY.md               # politique de confidentialité
+manifest.json            # MV3: permissions, keyboard commands
+_locales/{en,fr}/        # message catalogs (English is the default)
+src/background.js        # service worker: DNR rules, per-tab bypass, launcher window
+src/lib/rules.js         # pure redirect logic (parsing, DNR rules, preview)
+src/lib/launcher.js      # pure launcher logic (environments, searches, URL building)
+src/lib/i18n.js          # applies translations to the DOM
+src/lib/storage.js       # chrome.storage.sync access
+src/options/             # options page (Redirects / Launcher tabs)
+src/popup/               # toolbar popup
+src/launcher/            # launcher window
+test/                    # tests for both logic modules
+tools/make_icons.py      # icon generation
+tools/package.py         # store limit checks + ZIP archive
+store/listing.md         # texts and checklist for publishing
+PRIVACY.md               # privacy policy
 ```
 
-Toute la logique de correspondance et de construction d'URL vit dans `src/lib/`, sans dépendance aux
-API `chrome.*`, afin d'être couverte par les tests.
+All matching and URL-building logic lives in `src/lib/`, free of `chrome.*` APIs, so it can be
+covered by tests. User-facing strings live in `_locales/`; the logic modules return **error codes**
+that the UI translates.
 
-## Publication sur le Chrome Web Store
+## Publishing to the Chrome Web Store
 
-`npm run package` produit l'archive à envoyer (`dist/`) et refuse l'empaquetage si le manifest sort
-des limites du store — description trop longue, icône manquante, fichier référencé absent, code
-hébergé à distance.
+`npm run package` builds the archive to upload (`dist/`) and refuses to package if the manifest
+breaks a store limit — description too long, missing icon, missing referenced file, remotely hosted
+code, or a translation key used by the UI but absent from the default catalog.
 
-Tout le reste — visibilité, textes de la fiche, justification de chaque autorisation, déclarations
-de confidentialité, captures d'écran — est détaillé sous forme de checklist dans
-[`store/listing.md`](store/listing.md). La politique de confidentialité à publier se trouve dans
-[`PRIVACY.md`](PRIVACY.md).
+Everything else — visibility, listing copy, permission justifications, privacy declarations,
+screenshots — is laid out as a checklist in [`store/listing.md`](store/listing.md).
 
 ## Licence
 

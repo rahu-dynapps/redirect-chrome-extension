@@ -1,8 +1,8 @@
 {
   "name": "redirect-chrome-extension",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "Extension Chrome MV3 de redirection de noms de domaine (conserve chemin, paramètres et ancre).",
+  "description": "Chrome MV3 extension: domain redirects that keep the URL intact, plus a keyboard-shortcut search launcher.",
   "type": "module",
   "scripts": {
     "test": "node --test",

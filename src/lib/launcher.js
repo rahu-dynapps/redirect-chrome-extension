@@ -7,9 +7,9 @@ export const QUICK_SLOTS = ['quick-1', 'quick-2', 'quick-3'];
 
 /** Exemples installés au premier lancement (modifiables/supprimables depuis les options). */
 export const EXAMPLE_SEARCHES = [
-  { label: 'Ticket', keyword: 't', template: '/odoo/helpdesk/{q}' },
-  { label: 'Contact', keyword: 'c', template: '/odoo/contacts/{q}' },
-  { label: 'Commande', keyword: 'so', template: '/odoo/sales/{q}' }
+  { labelKey: 'exampleSearchTicket', keyword: 't', template: '/tickets/{q}' },
+  { labelKey: 'exampleSearchContact', keyword: 'c', template: '/contacts/{q}' },
+  { labelKey: 'exampleSearchOrder', keyword: 'o', template: '/orders/{q}' }
 ];
 
 const PLACEHOLDER_RE = /\{q\}/g;
@@ -20,8 +20,8 @@ export function newId(prefix = 'x') {
 }
 
 /**
- * Un environnement = une base d'URL (une instance Odoo, un environnement de test…).
- * Accepte « client-prod-1234.odoo.com » comme « https://client-prod-1234.odoo.com/odoo ».
+ * Un environnement = une base d'URL (instance de production, environnement de test…).
+ * Accepte « app-1234.hosting.example.com » comme « https://app-1234.hosting.example.com/app ».
  */
 export function normalizeEnvironment(raw) {
   const errors = [];
@@ -37,17 +37,17 @@ export function normalizeEnvironment(raw) {
       // On conserve un éventuel préfixe de chemin, sans le « / » final.
       baseUrl = `${url.origin}${url.pathname.replace(/\/+$/, '')}`;
     } catch {
-      errors.push(`« ${rawBase} » n'est pas une URL valide.`);
+      errors.push({ code: 'errBaseUrlInvalid', value: rawBase });
     }
   } else {
-    errors.push("Indiquez l'URL de base de l'environnement.");
+    errors.push({ code: 'errBaseUrlEmpty', value: '' });
   }
 
   const label = String(raw?.label ?? '').trim().slice(0, 60);
   return {
     environment: {
       id: typeof raw?.id === 'string' && raw.id ? raw.id : newId('env'),
-      label: label || hostOf(baseUrl) || 'Sans nom',
+      label: label || hostOf(baseUrl),
       baseUrl
     },
     errors
@@ -64,16 +64,16 @@ function hostOf(baseUrl) {
 
 /**
  * Une recherche = un modèle d'URL contenant {q}, relatif à l'environnement
- * (« /odoo/helpdesk/{q} ») ou absolu (« https://support.example.com/t/{q} »).
+ * (« /tickets/{q} ») ou absolu (« https://support.example.com/t/{q} »).
  */
 export function normalizeSearch(raw) {
   const errors = [];
   const template = String(raw?.template ?? '').trim();
   if (!template) {
-    errors.push('Indiquez le modèle d’URL.');
+    errors.push({ code: 'errTemplateEmpty', value: '' });
   } else if (!PLACEHOLDER_RE.test(template)) {
     PLACEHOLDER_RE.lastIndex = 0;
-    errors.push('Le modèle doit contenir {q}, remplacé par la valeur saisie.');
+    errors.push({ code: 'errTemplateNoPlaceholder', value: '' });
   }
   PLACEHOLDER_RE.lastIndex = 0;
 
@@ -85,7 +85,7 @@ export function normalizeSearch(raw) {
   return {
     search: {
       id: typeof raw?.id === 'string' && raw.id ? raw.id : newId('s'),
-      label: String(raw?.label ?? '').trim().slice(0, 60) || 'Sans nom',
+      label: String(raw?.label ?? '').trim().slice(0, 60),
       keyword: keyword.slice(0, 16),
       template,
       // Un environnement épinglé : cette recherche l'utilise toujours, quel que soit le choix courant.
@@ -166,11 +166,12 @@ export function resolveLaunch({ text, searches, environments, activeSearchId, ac
   };
 }
 
-export const LAUNCH_ERRORS = {
-  'no-search': 'Aucune recherche configurée.',
-  'invalid-search': 'Le modèle d’URL de cette recherche est invalide.',
-  'empty-query': 'Saisissez une valeur (numéro de ticket, identifiant…).',
-  'missing-environment': 'Aucun environnement configuré.',
-  'unsupported-scheme': 'Seules les URL http:// et https:// peuvent être ouvertes.',
-  'invalid-url': 'L’URL obtenue est invalide.'
+/** Code d'erreur du lanceur → clé de message traduite par l'interface. */
+export const LAUNCH_ERROR_KEYS = {
+  'no-search': 'launchErrNoSearch',
+  'invalid-search': 'launchErrInvalidSearch',
+  'empty-query': 'launchErrEmptyQuery',
+  'missing-environment': 'launchErrMissingEnvironment',
+  'unsupported-scheme': 'launchErrUnsupportedScheme',
+  'invalid-url': 'launchErrInvalidUrl'
 };

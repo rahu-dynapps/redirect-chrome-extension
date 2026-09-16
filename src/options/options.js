@@ -15,6 +15,7 @@ import {
   normalizeEnvironment,
   normalizeSearch
 } from '../lib/launcher.js';
+import { applyI18n, t } from '../lib/i18n.js';
 import {
   DEFAULT_LAUNCHER,
   DEFAULT_SETTINGS,
@@ -42,6 +43,7 @@ let grantedOrigins = new Set();
 init();
 
 async function init() {
+  applyI18n();
   const [redirectState, launcherState] = await Promise.all([loadState(), loadLauncher()]);
   state = { ...redirectState, ...launcherState };
   $('#global-enabled').checked = state.settings.enabled !== false;
@@ -57,7 +59,7 @@ async function init() {
   renderAll();
   if (prefill) focusRow('#rules', state.mappings.at(-1).id, '.js-to');
 
-  activateTab(location.hash.replace('#', '') || 'redirections');
+  activateTab(location.hash.replace('#', '') || 'redirects');
   for (const tab of $$('.tab')) {
     tab.addEventListener('click', () => activateTab(tab.dataset.tab));
   }
@@ -75,7 +77,7 @@ async function init() {
   $('#open-in').addEventListener('change', async (event) => {
     state.launcher = { ...state.launcher, openIn: event.target.value };
     await saveLauncher(state.launcher);
-    setStatus('Enregistré.');
+    setStatus(t('statusSaved'));
   });
   $('#open-shortcuts').addEventListener('click', () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
@@ -88,8 +90,8 @@ async function init() {
 }
 
 function activateTab(name) {
-  const tabs = ['redirections', 'lanceur'];
-  const active = tabs.includes(name) ? name : 'redirections';
+  const tabs = ['redirects', 'launcher'];
+  const active = tabs.includes(name) ? name : 'redirects';
   for (const tab of $$('.tab')) tab.setAttribute('aria-selected', String(tab.dataset.tab === active));
   for (const panel of $$('.tab-panel')) panel.hidden = panel.dataset.panel !== active;
   if (location.hash.replace('#', '') !== active) history.replaceState(null, '', `#${active}`);
@@ -175,19 +177,17 @@ function showMappingMessage(node, mapping) {
   const incomplete = !mapping.fromHost || !mapping.toHost;
 
   if (errors.length && !incomplete) {
-    message.textContent = errors.join(' ');
+    message.textContent = errors.map(translateError).join(' ');
     node.classList.add('has-error');
     message.hidden = false;
   } else if (incomplete) {
-    message.textContent = 'Renseignez le domaine source et le domaine cible.';
+    message.textContent = t('msgIncomplete');
     message.classList.add('warn');
     message.hidden = false;
   } else if (mapping.enabled !== false && !hasPermissions(mapping)) {
-    message.textContent = `Chrome doit être autorisé à accéder à ${mapping.fromHost} et ${mapping.toHost}.`;
+    message.textContent = t('msgMissingPermission', [mapping.fromHost, mapping.toHost]);
     message.classList.add('warn');
-    message.append(
-      button('Autoriser', () => requestOrigins(requiredOrigins(mapping)))
-    );
+    message.append(button(t('btnAllow'), () => requestOrigins(requiredOrigins(mapping))));
     message.hidden = false;
   }
 }
@@ -214,7 +214,7 @@ async function updateMapping(id, node) {
 
 async function onAddRule() {
   if (state.mappings.length >= MAX_MAPPINGS) {
-    setStatus(`Maximum de ${MAX_MAPPINGS} redirections atteint.`, true);
+    setStatus(t('statusMaxRedirects', [String(MAX_MAPPINGS)]), true);
     return;
   }
   const mapping = blankMapping();
@@ -226,8 +226,8 @@ async function onAddRule() {
 
 async function deleteMapping(id) {
   const mapping = state.mappings.find((m) => m.id === id);
-  const label = mapping && isUsable(mapping) ? describeMapping(mapping) : 'cette redirection';
-  if (isUsable(mapping) && !confirm(`Supprimer ${label} ?`)) return;
+  const label = mapping && isUsable(mapping) ? describeMapping(mapping) : t('thisRedirect');
+  if (isUsable(mapping) && !confirm(t('confirmDelete', [label]))) return;
   state.mappings = state.mappings.filter((m) => m.id !== id);
   await persistMappings();
   renderRules();
@@ -236,7 +236,7 @@ async function deleteMapping(id) {
 async function onToggleGlobal(event) {
   state.settings = { ...state.settings, enabled: event.target.checked };
   await saveSettings(state.settings);
-  setStatus(event.target.checked ? 'Redirections activées.' : 'Redirections mises en pause.');
+  setStatus(t(event.target.checked ? 'statusRedirectsOn' : 'statusRedirectsOff'));
 }
 
 async function onGrantAll() {
@@ -255,11 +255,11 @@ async function requestOrigins(origins) {
   try {
     granted = await chrome.permissions.request({ origins: missing });
   } catch (error) {
-    setStatus(`Autorisation impossible : ${error.message}`, true);
+    setStatus(t('statusPermissionError', [error.message]), true);
   }
   await refreshPermissions();
   renderRules();
-  if (granted) setStatus('Autorisations accordées.');
+  if (granted) setStatus(t('statusPermissionsGranted'));
   return granted;
 }
 
@@ -269,7 +269,7 @@ function runTest() {
   result.hidden = false;
   if (!input) {
     result.className = 'test-result ko';
-    result.textContent = 'Saisissez une URL.';
+    result.textContent = t('testEmpty');
     return;
   }
   const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(input) ? input : `https://${input}`;
@@ -279,17 +279,19 @@ function runTest() {
     result.textContent = `→ ${outcome.url}`;
     if (!hasPermissions(outcome.mapping)) {
       result.className = 'test-result err';
-      result.textContent += ' (autorisation manquante : la redirection ne s’appliquera pas)';
+      result.textContent += ` ${t('testMissingPermission')}`;
     }
     return;
   }
   result.className = outcome.reason === 'invalid-url' ? 'test-result err' : 'test-result ko';
-  result.textContent = {
-    'invalid-url': 'URL invalide.',
-    'unsupported-scheme': 'Seules les URL http:// et https:// peuvent être redirigées.',
-    paused: 'Les redirections sont en pause (interrupteur en haut de la page).',
-    'no-match': 'Aucune redirection ne correspond : cette URL sera ouverte telle quelle.'
-  }[outcome.reason];
+  result.textContent = t(
+    {
+      'invalid-url': 'testInvalidUrl',
+      'unsupported-scheme': 'testUnsupportedScheme',
+      paused: 'testPaused',
+      'no-match': 'testNoMatch'
+    }[outcome.reason]
+  );
 }
 
 // ------------------------------------------------------------------- lanceur
@@ -335,7 +337,7 @@ function renderEnvironment(environment) {
   const { errors } = normalizeEnvironment(environment);
   if (errors.length) {
     const message = resetMessage(node);
-    message.textContent = errors.join(' ');
+    message.textContent = errors.map(translateError).join(' ');
     node.classList.add('has-error');
     message.hidden = false;
   }
@@ -352,7 +354,7 @@ async function updateEnvironment(id, node) {
   });
   state.environments[index] = environment;
   await saveEnvironments(state.environments);
-  setStatus('Enregistré.');
+  setStatus(t('statusSaved'));
   renderEnvironments();
   renderSearches();
   renderSlots();
@@ -360,7 +362,7 @@ async function updateEnvironment(id, node) {
 
 async function onAddEnvironment() {
   if (state.environments.length >= MAX_ENVIRONMENTS) {
-    setStatus(`Maximum de ${MAX_ENVIRONMENTS} environnements atteint.`, true);
+    setStatus(t('statusMaxEnvironments', [String(MAX_ENVIRONMENTS)]), true);
     return;
   }
   const { environment } = normalizeEnvironment({ label: '', baseUrl: '' });
@@ -374,7 +376,7 @@ async function onAddEnvironment() {
 
 async function deleteEnvironment(id) {
   const environment = state.environments.find((e) => e.id === id);
-  if (environment?.baseUrl && !confirm(`Supprimer l'environnement « ${environment.label} » ?`)) return;
+  if (environment?.baseUrl && !confirm(t('confirmDeleteEnvironment', [labelOf(environment)]))) return;
   state.environments = state.environments.filter((e) => e.id !== id);
   // Les recherches et raccourcis qui pointaient dessus retombent sur le choix du lanceur.
   state.searches = state.searches.map((s) => (s.environmentId === id ? { ...s, environmentId: '' } : s));
@@ -389,7 +391,7 @@ async function deleteEnvironment(id) {
     )
   };
   await Promise.all([saveEnvironments(state.environments), saveSearches(state.searches), saveLauncher(state.launcher)]);
-  setStatus('Enregistré.');
+  setStatus(t('statusSaved'));
   renderEnvironments();
   renderSearches();
   renderSlots();
@@ -408,7 +410,7 @@ function renderSearch(search) {
   node.querySelector('.js-keyword').value = search.keyword ?? '';
   node.querySelector('.js-template').value = search.template ?? '';
   fillSelect(node.querySelector('.js-env'), state.environments, search.environmentId, {
-    emptyLabel: 'Choisi dans le lanceur'
+    emptyLabel: t('envChosenInLauncher')
   });
 
   const commit = () => updateSearch(search.id, node);
@@ -426,7 +428,10 @@ function renderSearch(search) {
     search.keyword && state.searches.some((s) => s.id !== search.id && s.keyword === search.keyword);
   if (errors.length || duplicate) {
     const message = resetMessage(node);
-    message.textContent = [...errors, duplicate ? `Le mot-clé « ${search.keyword} » est déjà utilisé.` : '']
+    message.textContent = [
+      ...errors.map(translateError),
+      duplicate ? t('errDuplicateKeyword', [search.keyword]) : ''
+    ]
       .filter(Boolean)
       .join(' ');
     node.classList.add('has-error');
@@ -447,14 +452,14 @@ async function updateSearch(id, node) {
   });
   state.searches[index] = search;
   await saveSearches(state.searches);
-  setStatus('Enregistré.');
+  setStatus(t('statusSaved'));
   renderSearches();
   renderSlots();
 }
 
 async function onAddSearch() {
   if (state.searches.length >= MAX_SEARCHES) {
-    setStatus(`Maximum de ${MAX_SEARCHES} recherches atteint.`, true);
+    setStatus(t('statusMaxSearches', [String(MAX_SEARCHES)]), true);
     return;
   }
   const { search } = normalizeSearch({ label: '', template: '' });
@@ -467,7 +472,7 @@ async function onAddSearch() {
 
 async function deleteSearch(id) {
   const search = state.searches.find((s) => s.id === id);
-  if (isSearchUsable(search) && !confirm(`Supprimer la recherche « ${search.label} » ?`)) return;
+  if (isSearchUsable(search) && !confirm(t('confirmDeleteSearch', [labelOf(search)]))) return;
   state.searches = state.searches.filter((s) => s.id !== id);
   state.launcher = {
     ...state.launcher,
@@ -480,7 +485,7 @@ async function deleteSearch(id) {
     )
   };
   await Promise.all([saveSearches(state.searches), saveLauncher(state.launcher)]);
-  setStatus('Enregistré.');
+  setStatus(t('statusSaved'));
   renderSearches();
   renderSlots();
 }
@@ -490,13 +495,14 @@ function renderSlots() {
   list.textContent = '';
   QUICK_SLOTS.forEach((command, index) => {
     const node = document.querySelector('#slot-template').content.firstElementChild.cloneNode(true);
+    applyI18n(node);
     const slot = state.launcher.slots?.[command] ?? {};
-    node.querySelector('.slot-name').textContent = `Raccourci rapide ${index + 1}`;
+    node.querySelector('.slot-name').textContent = t('slotName', [String(index + 1)]);
     fillSelect(node.querySelector('.js-search'), state.searches.filter(isSearchUsable), slot.searchId, {
-      emptyLabel: 'Dernière utilisée'
+      emptyLabel: t('slotLastUsed')
     });
     fillSelect(node.querySelector('.js-env'), state.environments, slot.environmentId, {
-      emptyLabel: 'Dernier utilisé'
+      emptyLabel: t('slotLastUsed')
     });
     for (const selector of ['.js-search', '.js-env']) {
       node.querySelector(selector).addEventListener('change', async () => {
@@ -511,7 +517,7 @@ function renderSlots() {
           }
         };
         await saveLauncher(state.launcher);
-        setStatus('Enregistré.');
+        setStatus(t('statusSaved'));
       });
     }
     list.append(node);
@@ -540,7 +546,11 @@ function onExport() {
   link.click();
   URL.revokeObjectURL(url);
   setIoResult(
-    `${state.mappings.length} redirection(s), ${state.environments.length} environnement(s) et ${state.searches.length} recherche(s) exportés.`,
+    t('exportDone', [
+      String(state.mappings.length),
+      String(state.environments.length),
+      String(state.searches.length)
+    ]),
     'ok'
   );
 }
@@ -602,12 +612,12 @@ async function onImportFile(event) {
     const total = counts.mappings + counts.environments + counts.searches;
     setIoResult(
       total
-        ? `Importé : ${counts.mappings} redirection(s), ${counts.environments} environnement(s), ${counts.searches} recherche(s). Pensez à accorder les autorisations.`
-        : 'Rien à importer (doublons ou entrées invalides).',
+        ? t('importDone', [String(counts.mappings), String(counts.environments), String(counts.searches)])
+        : t('importNothing'),
       total ? 'ok' : 'ko'
     );
   } catch (error) {
-    setIoResult(`Import impossible : ${error.message}`, 'err');
+    setIoResult(t('importFailed', [error.message]), 'err');
   }
 }
 
@@ -615,8 +625,22 @@ async function onImportFile(event) {
 
 function cloneTemplate(selector, id) {
   const node = document.querySelector(selector).content.firstElementChild.cloneNode(true);
+  applyI18n(node);
   node.dataset.id = id;
   return node;
+}
+
+/** Libellé affichable d'un environnement ou d'une recherche, éventuellement sans nom. */
+function labelOf(item) {
+  return item?.label || item?.baseUrl || t('unnamed');
+}
+
+/** Code d'erreur d'un module de logique → message traduit, préfixé par le champ concerné. */
+function translateError(error) {
+  const message = t(error.code, error.value ? [error.value] : undefined);
+  if (error.field === 'from') return t('errFieldSource', [message]);
+  if (error.field === 'to') return t('errFieldTarget', [message]);
+  return message;
 }
 
 function wireRowButtons(node, { onUp, onDown, onDelete }) {
@@ -653,7 +677,7 @@ function fillSelect(select, items, selectedId, { emptyLabel } = {}) {
   for (const item of items) {
     const option = document.createElement('option');
     option.value = item.id;
-    option.textContent = item.label || item.baseUrl || 'Sans nom';
+    option.textContent = labelOf(item);
     select.append(option);
   }
   select.value = items.some((item) => item.id === selectedId) ? selectedId : '';
@@ -686,14 +710,14 @@ async function moveItem(listName, id, delta) {
   const [item] = list.splice(index, 1);
   list.splice(target, 0, item);
   await LISTS[listName].save();
-  setStatus('Enregistré.');
+  setStatus(t('statusSaved'));
   LISTS[listName].render();
   focusRow(`#${listName === 'mappings' ? 'rules' : listName}`, id, '.js-up');
 }
 
 async function persistMappings({ silent = false } = {}) {
   await saveMappings(state.mappings);
-  if (!silent) setStatus('Enregistré.');
+  if (!silent) setStatus(t('statusSaved'));
 }
 
 function focusRow(listSelector, id, fieldSelector) {

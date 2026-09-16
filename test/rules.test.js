@@ -15,13 +15,13 @@ const mapping = (raw) => normalizeMapping(raw).mapping;
 
 describe('parseHostInput', () => {
   it('accepte un domaine nu', () => {
-    assert.deepEqual(parseHostInput('alias.client.fr'), { ok: true, host: 'alias.client.fr', port: '' });
+    assert.deepEqual(parseHostInput('helpdesk.example.com'), { ok: true, host: 'helpdesk.example.com', port: '' });
   });
 
   it('extrait l’hôte d’une URL complète collée', () => {
-    assert.deepEqual(parseHostInput('https://alias.client.fr/odoo/contacts?debug=1#id=42'), {
+    assert.deepEqual(parseHostInput('https://helpdesk.example.com/contacts?debug=1#id=42'), {
       ok: true,
-      host: 'alias.client.fr',
+      host: 'helpdesk.example.com',
       port: ''
     });
   });
@@ -35,20 +35,28 @@ describe('parseHostInput', () => {
   });
 
   it('rejette une saisie vide ou invalide', () => {
-    assert.equal(parseHostInput('').ok, false);
-    assert.equal(parseHostInput('pas un domaine').ok, false);
-    assert.equal(parseHostInput('ftp://alias.client.fr').ok, false);
+    assert.equal(parseHostInput('').code, 'errHostEmpty');
+    assert.equal(parseHostInput('pas un domaine').code, 'errHostInvalid');
+    assert.equal(parseHostInput('ftp://helpdesk.example.com').code, 'errHostScheme');
   });
 });
 
 describe('normalizeMapping', () => {
   it('signale une source et une cible identiques', () => {
     const { errors } = normalizeMapping({ from: 'a.fr', to: 'https://a.fr/web' });
-    assert.ok(errors.some((e) => e.includes('identiques')));
+    assert.deepEqual(errors, [{ field: '', code: 'errSameHost', value: '' }]);
+  });
+
+  it('renvoie des codes d’erreur par champ, traduisibles par l’interface', () => {
+    const { errors } = normalizeMapping({ from: 'pas un domaine', to: '' });
+    assert.deepEqual(errors, [
+      { field: 'from', code: 'errHostInvalid', value: 'pas un domaine' },
+      { field: 'to', code: 'errHostEmpty', value: '' }
+    ]);
   });
 
   it('remplit les valeurs par défaut', () => {
-    const m = mapping({ from: 'alias.fr', to: 'cible.fr' });
+    const m = mapping({ from: 'alias.fr', to: 'target.fr' });
     assert.equal(m.enabled, true);
     assert.equal(m.includeSubdomains, false);
     assert.equal(m.forceHttps, false);
@@ -57,54 +65,54 @@ describe('normalizeMapping', () => {
 });
 
 describe('previewRedirect', () => {
-  const mappings = [mapping({ from: 'alias.client.fr', to: 'client-prod-1234.odoo.com' })];
+  const mappings = [mapping({ from: 'helpdesk.example.com', to: 'app-1234.hosting.example.com' })];
 
   it('conserve le chemin, la requête et l’ancre', () => {
-    const out = previewRedirect('https://alias.client.fr/odoo/action-42?debug=assets#id=7', mappings);
+    const out = previewRedirect('https://helpdesk.example.com/tickets/42?debug=assets#id=7', mappings);
     assert.equal(out.ok, true);
-    assert.equal(out.url, 'https://client-prod-1234.odoo.com/odoo/action-42?debug=assets#id=7');
+    assert.equal(out.url, 'https://app-1234.hosting.example.com/tickets/42?debug=assets#id=7');
   });
 
   it('conserve le schéma d’origine par défaut', () => {
-    assert.equal(previewRedirect('http://alias.client.fr/web', mappings).url, 'http://client-prod-1234.odoo.com/web');
+    assert.equal(previewRedirect('http://helpdesk.example.com/web', mappings).url, 'http://app-1234.hosting.example.com/web');
   });
 
   it('force HTTPS si demandé', () => {
-    const forced = [mapping({ from: 'alias.client.fr', to: 'cible.odoo.com', forceHttps: true })];
-    assert.equal(previewRedirect('http://alias.client.fr/web', forced).url, 'https://cible.odoo.com/web');
+    const forced = [mapping({ from: 'helpdesk.example.com', to: 'target.example.com', forceHttps: true })];
+    assert.equal(previewRedirect('http://helpdesk.example.com/web', forced).url, 'https://target.example.com/web');
   });
 
   it('ignore les sous-domaines sauf si l’option est cochée', () => {
-    assert.equal(previewRedirect('https://staging.alias.client.fr/', mappings).ok, false);
-    const withSubs = [mapping({ from: 'alias.client.fr', to: 'cible.odoo.com', includeSubdomains: true })];
-    assert.equal(previewRedirect('https://staging.alias.client.fr/web', withSubs).url, 'https://cible.odoo.com/web');
+    assert.equal(previewRedirect('https://staging.helpdesk.example.com/', mappings).ok, false);
+    const withSubs = [mapping({ from: 'helpdesk.example.com', to: 'target.example.com', includeSubdomains: true })];
+    assert.equal(previewRedirect('https://staging.helpdesk.example.com/web', withSubs).url, 'https://target.example.com/web');
   });
 
   it('ne redirige pas un domaine qui se termine par la même chaîne', () => {
-    const withSubs = [mapping({ from: 'client.fr', to: 'cible.odoo.com', includeSubdomains: true })];
-    assert.equal(previewRedirect('https://autreclient.fr/', withSubs).ok, false);
+    const withSubs = [mapping({ from: 'example.com', to: 'target.example.com', includeSubdomains: true })];
+    assert.equal(previewRedirect('https://notexample.com/', withSubs).ok, false);
   });
 
   it('gère les ports', () => {
-    const withPort = [mapping({ from: 'localhost:8069', to: 'client-prod-1234.odoo.com' })];
-    assert.equal(previewRedirect('http://localhost:8069/web', withPort).url, 'http://client-prod-1234.odoo.com/web');
+    const withPort = [mapping({ from: 'localhost:8069', to: 'app-1234.hosting.example.com' })];
+    assert.equal(previewRedirect('http://localhost:8069/web', withPort).url, 'http://app-1234.hosting.example.com/web');
     assert.equal(previewRedirect('http://localhost:8070/web', withPort).ok, false);
-    const toPort = [mapping({ from: 'alias.client.fr', to: 'localhost:8069' })];
-    assert.equal(previewRedirect('http://alias.client.fr/web', toPort).url, 'http://localhost:8069/web');
+    const toPort = [mapping({ from: 'helpdesk.example.com', to: 'localhost:8069' })];
+    assert.equal(previewRedirect('http://helpdesk.example.com/web', toPort).url, 'http://localhost:8069/web');
   });
 
   it('applique la première règle correspondante', () => {
     const ordered = [
-      mapping({ from: 'alias.client.fr', to: 'premier.odoo.com' }),
-      mapping({ from: 'alias.client.fr', to: 'second.odoo.com' })
+      mapping({ from: 'helpdesk.example.com', to: 'first.example.com' }),
+      mapping({ from: 'helpdesk.example.com', to: 'second.example.com' })
     ];
-    assert.equal(previewRedirect('https://alias.client.fr/', ordered).url, 'https://premier.odoo.com/');
+    assert.equal(previewRedirect('https://helpdesk.example.com/', ordered).url, 'https://first.example.com/');
   });
 
   it('ignore les redirections désactivées et la pause globale', () => {
-    const off = [mapping({ from: 'alias.client.fr', to: 'cible.odoo.com', enabled: false })];
-    assert.equal(previewRedirect('https://alias.client.fr/', off).reason, 'no-match');
-    assert.equal(previewRedirect('https://alias.client.fr/', mappings, { enabled: false }).reason, 'paused');
+    const off = [mapping({ from: 'helpdesk.example.com', to: 'target.example.com', enabled: false })];
+    assert.equal(previewRedirect('https://helpdesk.example.com/', off).reason, 'no-match');
+    assert.equal(previewRedirect('https://helpdesk.example.com/', mappings, { enabled: false }).reason, 'paused');
   });
 
   it('refuse les schémas non http(s)', () => {
@@ -115,9 +123,9 @@ describe('previewRedirect', () => {
 
 describe('reverseRedirect', () => {
   it('reconstruit l’URL alias depuis l’URL cible', () => {
-    const mappings = [mapping({ from: 'alias.client.fr', to: 'client-prod-1234.odoo.com' })];
-    const out = reverseRedirect('https://client-prod-1234.odoo.com/odoo/contacts?x=1#id=2', mappings);
-    assert.equal(out.url, 'https://alias.client.fr/odoo/contacts?x=1#id=2');
+    const mappings = [mapping({ from: 'helpdesk.example.com', to: 'app-1234.hosting.example.com' })];
+    const out = reverseRedirect('https://app-1234.hosting.example.com/contacts?x=1#id=2', mappings);
+    assert.equal(out.url, 'https://helpdesk.example.com/contacts?x=1#id=2');
   });
 
   it('renvoie null quand aucune règle ne cible ce domaine', () => {
@@ -128,14 +136,14 @@ describe('reverseRedirect', () => {
 describe('buildDnrRules', () => {
   it('produit une règle de redirection par entrée active', () => {
     const rules = buildDnrRules([
-      mapping({ from: 'alias.client.fr', to: 'client-prod-1234.odoo.com' }),
+      mapping({ from: 'helpdesk.example.com', to: 'app-1234.hosting.example.com' }),
       mapping({ from: 'vide.fr', to: '' }),
-      mapping({ from: 'off.fr', to: 'cible.fr', enabled: false })
+      mapping({ from: 'off.fr', to: 'target.fr', enabled: false })
     ]);
     assert.equal(rules.length, 1);
     assert.deepEqual(rules[0].action, {
       type: 'redirect',
-      redirect: { transform: { host: 'client-prod-1234.odoo.com' } }
+      redirect: { transform: { host: 'app-1234.hosting.example.com' } }
     });
     assert.deepEqual(rules[0].condition.resourceTypes, ['main_frame']);
     assert.equal(rules[0].id, 1);
@@ -151,8 +159,8 @@ describe('buildDnrRules', () => {
   });
 
   it('supprime le port de la cible quand seule la source en a un', () => {
-    const [rule] = buildDnrRules([mapping({ from: 'localhost:8069', to: 'cible.odoo.com' })]);
-    assert.deepEqual(rule.action.redirect.transform, { host: 'cible.odoo.com', port: '' });
+    const [rule] = buildDnrRules([mapping({ from: 'localhost:8069', to: 'target.example.com' })]);
+    assert.deepEqual(rule.action.redirect.transform, { host: 'target.example.com', port: '' });
   });
 
   it('ajoute les iframes quand l’option est cochée', () => {
@@ -169,25 +177,25 @@ describe('buildRegexFilter', () => {
   const matches = (m, url) => new RegExp(buildRegexFilter(m), 'i').test(url);
 
   it('couvre l’URL entière et n’accepte que l’hôte exact', () => {
-    const m = mapping({ from: 'alias.client.fr', to: 'cible.fr' });
-    assert.ok(matches(m, 'https://alias.client.fr'));
-    assert.ok(matches(m, 'https://alias.client.fr/'));
-    assert.ok(matches(m, 'http://alias.client.fr:8069/web?a=1#b'));
-    assert.ok(matches(m, 'https://ALIAS.client.fr/web'));
-    assert.ok(!matches(m, 'https://staging.alias.client.fr/'));
-    assert.ok(!matches(m, 'https://alias.client.fr.evil.com/'));
-    assert.ok(!matches(m, 'https://autre.fr/?next=https://alias.client.fr/'));
+    const m = mapping({ from: 'helpdesk.example.com', to: 'target.fr' });
+    assert.ok(matches(m, 'https://helpdesk.example.com'));
+    assert.ok(matches(m, 'https://helpdesk.example.com/'));
+    assert.ok(matches(m, 'http://helpdesk.example.com:8069/web?a=1#b'));
+    assert.ok(matches(m, 'https://HELPDESK.example.com/web'));
+    assert.ok(!matches(m, 'https://staging.helpdesk.example.com/'));
+    assert.ok(!matches(m, 'https://helpdesk.example.com.evil.com/'));
+    assert.ok(!matches(m, 'https://autre.fr/?next=https://helpdesk.example.com/'));
   });
 
   it('accepte les sous-domaines quand l’option est cochée', () => {
-    const m = mapping({ from: 'client.fr', to: 'cible.fr', includeSubdomains: true });
-    assert.ok(matches(m, 'https://a.b.client.fr/web'));
-    assert.ok(matches(m, 'https://client.fr/web'));
-    assert.ok(!matches(m, 'https://autreclient.fr/web'));
+    const m = mapping({ from: 'example.com', to: 'target.fr', includeSubdomains: true });
+    assert.ok(matches(m, 'https://a.b.example.com/web'));
+    assert.ok(matches(m, 'https://example.com/web'));
+    assert.ok(!matches(m, 'https://notexample.com/web'));
   });
 
   it('exige le port quand il est précisé', () => {
-    const m = mapping({ from: 'localhost:8069', to: 'cible.fr' });
+    const m = mapping({ from: 'localhost:8069', to: 'target.fr' });
     assert.ok(matches(m, 'http://localhost:8069/web'));
     assert.ok(!matches(m, 'http://localhost/web'));
     assert.ok(!matches(m, 'http://localhost:8070/web'));
@@ -201,9 +209,9 @@ describe('buildRegexFilter', () => {
 
 describe('requiredOrigins', () => {
   it('demande la source et la cible, sans port', () => {
-    assert.deepEqual(requiredOrigins(mapping({ from: 'alias.fr:8069', to: 'cible.odoo.com' })), [
+    assert.deepEqual(requiredOrigins(mapping({ from: 'alias.fr:8069', to: 'target.example.com' })), [
       '*://alias.fr/*',
-      '*://cible.odoo.com/*'
+      '*://target.example.com/*'
     ]);
   });
 
