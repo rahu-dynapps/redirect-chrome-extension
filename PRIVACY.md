@@ -49,5 +49,6 @@ Toute évolution de cette politique sera publiée dans ce fichier, dans le dép�
 
 ## Contact
 
-<!-- À compléter avant publication : adresse e-mail de contact affichée sur la fiche du store. -->
-`à compléter` — dépôt du projet : https://github.com/rahu-dynapps/redirect-chrome-extension
+Pour toute question relative à cette politique : **rdefrob@gmail.com**
+
+Dépôt du projet : https://github.com/rahu-dynapps/redirect-chrome-extension

@@ -7,6 +7,45 @@ dans l'ordre des champs du formulaire. Les blocs entre guillemets se collent tel
 
 ---
 
+## 0. Stratégie de distribution recommandée
+
+L'extension n'a rien de spécifique à un client : le besoin (atteindre la bonne URL d'une instance
+métier depuis un alias, ouvrir un ticket par son numéro) est partagé par tous les intégrateurs. Une
+diffusion publique se défend donc, mais en **deux temps** plutôt que d'emblée.
+
+**Étape 1 — publier en « non répertoriée ».** Même une extension non répertoriée passe la revue
+Google : l'étape valide donc tout le circuit (compte, archive, justifications, politique de
+confidentialité) avec un enjeu faible. On installe par lien, on essuie les plâtres en interne
+pendant quelques semaines, on corrige.
+
+**Étape 2 — basculer en « publique »** depuis le même élément, une fois la configuration stabilisée
+et les retours internes intégrés. Aucune perte : les utilisateurs déjà installés gardent l'extension
+et ses mises à jour.
+
+### Ce qu'il faut préparer en plus pour une diffusion publique
+
+- **Compte propriétaire.** Une fiche publique affiche le nom du compte comme éditeur. Un compte
+  Google Workspace Dynapps permet de faire **vérifier le domaine** et d'afficher `dynapps.fr` comme
+  éditeur — nettement plus crédible qu'un compte personnel, et l'extension reste à l'entreprise si
+  son auteur change de poste. À arbitrer selon que l'extension est un projet Dynapps ou personnel :
+  le choix est difficile à défaire après publication (le transfert d'un élément entre comptes est
+  laborieux).
+- **Langue de la fiche.** Le nom et la fiche sont en français ; le public visé (intégrateurs Odoo)
+  est largement international. Deux options : ajouter une fiche localisée en anglais dans le
+  dashboard, et/ou internationaliser l'extension elle-même (`_locales/fr` + `_locales/en`,
+  `default_locale` dans le manifest, libellés via `chrome.i18n.getMessage`). Un nom anglais ou
+  neutre élargit l'audience.
+- **Marque Odoo.** Ne **pas** faire figurer « Odoo » dans le nom de l'extension : c'est une marque
+  déposée d'Odoo S.A. La mentionner dans la description pour décrire une compatibilité est usuel, à
+  condition de ne laisser entendre aucune affiliation. Ajouter en fin de description :
+  > Extension indépendante, sans lien ni affiliation avec Odoo S.A.
+- **Support.** Une fiche publique amène avis, demandes et rapports de bugs. Prévoir où ils
+  atterrissent (issues GitHub plutôt qu'une boîte mail personnelle) et le mentionner dans la fiche.
+- **Dépôt public.** La politique de confidentialité doit être accessible par une URL publique. Si le
+  dépôt est privé, GitHub Pages n'est pas disponible sans plan payant : le rendre public est le plus
+  simple, et l'ouverture du code est un argument de confiance pour une extension qui manipule des
+  URL.
+
 ## 1. Avant de commencer
 
 - [ ] Compte Google **d'entreprise** (pas personnel) : c'est lui qui possédera l'extension.
@@ -16,7 +55,7 @@ dans l'ordre des champs du formulaire. Les blocs entre guillemets se collent tel
   - **Non répertoriée** *(recommandé pour un usage interne)* : installable par lien uniquement.
   - **Publique** : référencée dans le store, revue la plus stricte.
   - **Privée** : réservée au domaine Google Workspace, nécessite de rattacher le compte au Workspace.
-- [ ] ✏️ Adresse e-mail de contact renseignée dans `PRIVACY.md` et sur la fiche.
+- [x] Adresse e-mail de contact : **rdefrob@gmail.com** (renseignée dans `PRIVACY.md`, à saisir aussi dans le champ « Adresse e-mail du développeur » de la fiche — elle y est **affichée publiquement**).
 - [ ] `PRIVACY.md` publié à une **URL publique** (GitHub Pages, site Dynapps…) : l'URL est demandée
       dans l'onglet Confidentialité.
 
