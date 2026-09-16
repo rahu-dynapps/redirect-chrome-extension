@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "Redirection de domaines",
   "version": "1.1.0",
-  "description": "Redirige automatiquement certains noms de domaine vers un autre en conservant les paramètres de l'URL, et ouvre une recherche (ticket, contact…) depuis un raccourci clavier.",
+  "description": "Redirige des domaines en conservant chemin et paramètres, et ouvre un ticket ou une fiche via un raccourci clavier.",
+  "homepage_url": "https://github.com/rahu-dynapps/redirect-chrome-extension",
   "minimum_chrome_version": "108",
   "permissions": [
     "declarativeNetRequest",

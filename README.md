@@ -147,6 +147,7 @@ Le bouton **« Configurer les raccourcis dans Chrome »** (onglet « Lanceur »)
 
 ```bash
 npm test                      # tests unitaires de la logique pure (node:test)
+npm run package               # vérifie le manifest et produit le ZIP pour le Chrome Web Store
 python3 tools/make_icons.py   # régénère les icônes PNG
 ```
 
@@ -161,7 +162,25 @@ src/popup/               # popup de la barre d'outils
 src/launcher/            # petite fenêtre du lanceur
 test/                    # tests des deux modules de logique
 tools/make_icons.py      # génération des icônes
+tools/package.py         # contrôle des limites du store + archive ZIP
+store/listing.md         # textes et checklist pour la publication
+PRIVACY.md               # politique de confidentialité
 ```
 
 Toute la logique de correspondance et de construction d'URL vit dans `src/lib/`, sans dépendance aux
 API `chrome.*`, afin d'être couverte par les tests.
+
+## Publication sur le Chrome Web Store
+
+`npm run package` produit l'archive à envoyer (`dist/`) et refuse l'empaquetage si le manifest sort
+des limites du store — description trop longue, icône manquante, fichier référencé absent, code
+hébergé à distance.
+
+Tout le reste — visibilité, textes de la fiche, justification de chaque autorisation, déclarations
+de confidentialité, captures d'écran — est détaillé sous forme de checklist dans
+[`store/listing.md`](store/listing.md). La politique de confidentialité à publier se trouve dans
+[`PRIVACY.md`](PRIVACY.md).
+
+## Licence
+
+[MIT](LICENSE).
