@@ -1,0 +1,11 @@
+{
+  "name": "redirect-chrome-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Extension Chrome MV3 de redirection de noms de domaine (conserve chemin, paramètres et ancre).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "icons": "python3 tools/make_icons.py"
+  }
+}

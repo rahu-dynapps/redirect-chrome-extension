@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirection de domaines — Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="brand">
+        <img src="../../icons/icon48.png" alt="" width="32" height="32" />
+        <div>
+          <h1>Redirection de domaines</h1>
+          <p class="subtitle">
+            Remplace le domaine d'une URL par un autre en conservant le chemin, les paramètres et l'ancre.
+          </p>
+        </div>
+      </div>
+      <label class="switch" id="global-switch">
+        <input type="checkbox" id="global-enabled" />
+        <span>Redirections activées</span>
+      </label>
+    </header>
+
+    <main>
+      <section id="permission-banner" class="banner banner-warn" hidden>
+        <div>
+          <strong>Autorisations manquantes.</strong>
+          Chrome exige un accès explicite aux domaines source et cible pour pouvoir rediriger.
+        </div>
+        <button type="button" id="grant-all" class="btn btn-primary">Autoriser tous les domaines</button>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Redirections</h2>
+          <button type="button" id="add-rule" class="btn btn-primary">Ajouter une redirection</button>
+        </div>
+        <p class="hint">
+          La première redirection dont le domaine source correspond est appliquée. Glissez l'ordre avec les
+          flèches si plusieurs règles se recoupent.
+        </p>
+        <ul id="rules" class="rules"></ul>
+        <p id="empty-state" class="empty" hidden>
+          Aucune redirection pour l'instant. Exemple&nbsp;: <code>alias.client.fr</code> →
+          <code>client-prod-1234.odoo.com</code>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Tester une URL</h2>
+        <p class="hint">Collez une URL reçue d'un utilisateur pour vérifier où elle sera redirigée.</p>
+        <div class="test-row">
+          <input
+            type="text"
+            id="test-input"
+            placeholder="https://alias.client.fr/odoo/contacts?debug=1#id=42"
+            spellcheck="false"
+          />
+          <button type="button" id="test-run" class="btn">Tester</button>
+        </div>
+        <p id="test-result" class="test-result" hidden></p>
+      </section>
+
+      <section class="card">
+        <h2>Sauvegarde</h2>
+        <p class="hint">
+          Les redirections sont synchronisées avec votre compte Chrome. L'export permet de les partager avec
+          un collègue.
+        </p>
+        <div class="row-actions">
+          <button type="button" id="export" class="btn">Exporter (JSON)</button>
+          <button type="button" id="import" class="btn">Importer (JSON)</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden />
+        </div>
+        <p id="io-result" class="test-result" hidden></p>
+      </section>
+    </main>
+
+    <footer><span id="status" class="status" role="status" aria-live="polite"></span></footer>
+
+    <template id="rule-template">
+      <li class="rule">
+        <div class="rule-grid">
+          <label class="field">
+            <span>Domaine source (l'alias)</span>
+            <input type="text" class="js-from" placeholder="alias.client.fr" spellcheck="false" />
+          </label>
+          <span class="arrow" aria-hidden="true">→</span>
+          <label class="field">
+            <span>Domaine cible</span>
+            <input type="text" class="js-to" placeholder="client-prod-1234.odoo.com" spellcheck="false" />
+          </label>
+          <div class="rule-buttons">
+            <label class="switch switch-sm" title="Activer ou désactiver cette redirection">
+              <input type="checkbox" class="js-enabled" />
+              <span class="sr-only">Activer</span>
+            </label>
+            <button type="button" class="icon-btn js-up" title="Monter" aria-label="Monter">↑</button>
+            <button type="button" class="icon-btn js-down" title="Descendre" aria-label="Descendre">↓</button>
+            <button type="button" class="icon-btn danger js-delete" title="Supprimer" aria-label="Supprimer">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div class="rule-options">
+          <label><input type="checkbox" class="js-subdomains" /> Inclure les sous-domaines</label>
+          <label><input type="checkbox" class="js-https" /> Forcer HTTPS</label>
+          <label><input type="checkbox" class="js-subframes" /> Rediriger aussi les iframes</label>
+          <input type="text" class="js-note note" placeholder="Note (ex. : client Dupont)" maxlength="200" />
+        </div>
+        <p class="rule-message js-message" hidden></p>
+      </li>
+    </template>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
