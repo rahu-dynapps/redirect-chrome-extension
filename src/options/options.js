@@ -11,6 +11,7 @@ import {
   MAX_ENVIRONMENTS,
   MAX_SEARCHES,
   QUICK_SLOTS,
+  countOverrides,
   isSearchUsable,
   normalizeEnvironment,
   normalizeSearch
@@ -419,7 +420,10 @@ async function deleteEnvironment(id) {
   if (environment?.baseUrl && !confirm(t('confirmDeleteEnvironment', [labelOf(environment)]))) return;
   state.environments = state.environments.filter((e) => e.id !== id);
   // Les recherches et raccourcis qui pointaient dessus retombent sur le choix du lanceur.
-  state.searches = state.searches.map((s) => (s.environmentId === id ? { ...s, environmentId: '' } : s));
+  state.searches = state.searches.map((s) => {
+    const { [id]: removed, ...overrides } = s.overrides ?? {};
+    return { ...s, overrides, environmentId: s.environmentId === id ? '' : s.environmentId };
+  });
   state.launcher = {
     ...state.launcher,
     lastEnvironmentId: state.launcher.lastEnvironmentId === id ? '' : state.launcher.lastEnvironmentId,
@@ -457,6 +461,7 @@ function renderSearch(search) {
   for (const selector of ['.js-label', '.js-keyword', '.js-template', '.js-env']) {
     node.querySelector(selector).addEventListener('change', commit);
   }
+  renderOverrides(node, search, commit);
   wireRowButtons(node, {
     onUp: () => moveItem('searches', search.id, -1),
     onDown: () => moveItem('searches', search.id, +1),
@@ -464,12 +469,20 @@ function renderSearch(search) {
   });
 
   const { errors } = normalizeSearch(search);
+  for (const error of errors) {
+    if (!error.environmentId) continue;
+    node.querySelector(`.override-row[data-env-id="${CSS.escape(error.environmentId)}"]`)?.classList.add('has-error');
+  }
   const duplicate =
     search.keyword && state.searches.some((s) => s.id !== search.id && s.keyword === search.keyword);
   if (errors.length || duplicate) {
     const message = resetMessage(node);
     message.textContent = [
-      ...errors.map(translateError),
+      ...errors.map((error) =>
+        error.environmentId
+          ? t('errOverrideNoPlaceholder', [labelOf(state.environments.find((e) => e.id === error.environmentId))])
+          : translateError(error)
+      ),
       duplicate ? t('errDuplicateKeyword', [search.keyword]) : ''
     ]
       .filter(Boolean)
@@ -483,18 +496,61 @@ function renderSearch(search) {
 async function updateSearch(id, node) {
   const index = state.searches.findIndex((s) => s.id === id);
   if (index === -1) return;
+  const overrides = {};
+  for (const input of node.querySelectorAll('.js-override')) {
+    overrides[input.dataset.envId] = input.value;
+  }
   const { search } = normalizeSearch({
     id,
     label: node.querySelector('.js-label').value,
     keyword: node.querySelector('.js-keyword').value,
     template: node.querySelector('.js-template').value,
-    environmentId: node.querySelector('.js-env').value
+    environmentId: node.querySelector('.js-env').value,
+    overrides
   });
   state.searches[index] = search;
   await saveSearches(state.searches);
   setStatus(t('statusSaved'));
   renderSearches();
   renderSlots();
+}
+
+/** Un champ par environnement : vide = le modèle par défaut de la recherche s'applique. */
+function renderOverrides(node, search, commit) {
+  const container = node.querySelector('.js-overrides');
+  const count = countOverrides(search);
+  node.querySelector('.js-overrides-count').textContent = count ? ` — ${t('overridesCount', [String(count)])}` : '';
+  container.textContent = '';
+  if (count) node.querySelector('.overrides').open = true;
+
+  if (!state.environments.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = t('overridesNoEnvironments');
+    container.append(empty);
+    return;
+  }
+
+  for (const environment of state.environments) {
+    const row = document.createElement('div');
+    row.className = 'override-row';
+    row.dataset.envId = environment.id;
+
+    const label = document.createElement('span');
+    label.textContent = labelOf(environment);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'js-override';
+    input.dataset.envId = environment.id;
+    input.spellcheck = false;
+    input.value = search.overrides?.[environment.id] ?? '';
+    input.placeholder = search.template || t('phTemplate');
+    input.addEventListener('change', commit);
+
+    row.append(label, input);
+    container.append(row);
+  }
 }
 
 async function onAddSearch() {

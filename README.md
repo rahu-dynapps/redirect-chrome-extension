@@ -137,6 +137,10 @@ A search is a **URL template containing `{q}`**, replaced by the value you type 
 
 - A **relative** template is appended to the selected environment; an **absolute** one
   (`https://…`) ignores the environment.
+- A search can also carry a **different template per environment**: the same “Ticket” search may be
+  `/all-tasks/{q}` on your own portal and `/web#id={q}&model=project.task&view_type=form` on a
+  customer instance. Open “Per-environment templates” in the search row and fill in only the
+  environments that differ — the others keep the default template.
 - Each search can **pin an environment**, for a search that only makes sense on one of them.
 - Three example searches are created on first install; edit or delete them freely.
 

@@ -3,11 +3,13 @@ import { describe, it } from 'node:test';
 
 import {
   buildLaunchUrl,
+  countOverrides,
   isSearchUsable,
   normalizeEnvironment,
   normalizeSearch,
   parseLauncherInput,
-  resolveLaunch
+  resolveLaunch,
+  templateFor
 } from '../src/lib/launcher.js';
 
 const env = (raw) => normalizeEnvironment(raw).environment;
@@ -172,5 +174,69 @@ describe('resolveLaunch', () => {
   it('signale l’absence de recherche configurée', () => {
     const out = resolveLaunch({ text: '7', searches: [], environments, activeSearchId: '', activeEnvironmentId: '' });
     assert.equal(out.result.error, 'no-search');
+  });
+});
+
+describe('modèles par environnement', () => {
+  const dynapps = env({ id: 'env_dyn', label: 'Dynapps', baseUrl: 'https://portail.example.com/app' });
+  const client = env({ id: 'env_cli', label: 'Client', baseUrl: 'https://client.example.com' });
+  const ticket = search({
+    id: 's_ticket',
+    label: 'Ticket',
+    keyword: 't',
+    template: '/all-tasks/{q}',
+    overrides: { env_cli: '/web#id={q}&model=project.task&view_type=form' }
+  });
+
+  it('applique le modèle propre à l’environnement', () => {
+    assert.equal(templateFor(ticket, client), '/web#id={q}&model=project.task&view_type=form');
+    assert.equal(
+      buildLaunchUrl({ search: ticket, environment: client, query: '4525' }).url,
+      'https://client.example.com/web#id=4525&model=project.task&view_type=form'
+    );
+  });
+
+  it('retombe sur le modèle par défaut ailleurs', () => {
+    assert.equal(templateFor(ticket, dynapps), '/all-tasks/{q}');
+    assert.equal(
+      buildLaunchUrl({ search: ticket, environment: dynapps, query: '4525' }).url,
+      'https://portail.example.com/app/all-tasks/4525'
+    );
+  });
+
+  it('un modèle d’environnement absolu ignore l’URL de base', () => {
+    const externe = search({ template: '/t/{q}', overrides: { env_cli: 'https://support.example.com/t/{q}' } });
+    assert.equal(
+      buildLaunchUrl({ search: externe, environment: client, query: '9' }).url,
+      'https://support.example.com/t/9'
+    );
+  });
+
+  it('resolveLaunch tient compte du modèle de l’environnement actif et de l’épinglage', () => {
+    const environments = [dynapps, client];
+    const searches = [ticket];
+    assert.equal(
+      resolveLaunch({ text: '7', searches, environments, activeSearchId: 's_ticket', activeEnvironmentId: 'env_cli' })
+        .result.url,
+      'https://client.example.com/web#id=7&model=project.task&view_type=form'
+    );
+    const epinglee = [search({ id: 's_p', keyword: 'p', template: '/t/{q}', environmentId: 'env_cli', overrides: { env_cli: '/pinned/{q}' } })];
+    assert.equal(
+      resolveLaunch({ text: 'p 3', searches: epinglee, environments, activeSearchId: '', activeEnvironmentId: 'env_dyn' })
+        .result.url,
+      'https://client.example.com/pinned/3'
+    );
+  });
+
+  it('ignore les modèles vides et compte les personnalisations', () => {
+    const partiel = search({ template: '/t/{q}', overrides: { env_cli: '  ', env_dyn: '/x/{q}' } });
+    assert.deepEqual(Object.keys(partiel.overrides), ['env_dyn']);
+    assert.equal(countOverrides(partiel), 1);
+    assert.equal(templateFor(partiel, client), '/t/{q}');
+  });
+
+  it('signale un modèle d’environnement sans {q}, en nommant l’environnement', () => {
+    const { errors } = normalizeSearch({ template: '/t/{q}', overrides: { env_cli: '/sans-jeton' } });
+    assert.deepEqual(errors, [{ code: 'errOverrideNoPlaceholder', value: '', environmentId: 'env_cli' }]);
   });
 });

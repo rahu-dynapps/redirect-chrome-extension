@@ -502,5 +502,20 @@
   },
   "ruleErrorHint": {
     "message": "Les autres redirections restent appliquées. Vérifiez la règle ci-dessous, puis corrigez-la."
+  },
+  "overridesSummary": {
+    "message": "Modèles par environnement"
+  },
+  "overridesCount": {
+    "message": "$1 personnalisé(s)"
+  },
+  "overridesHint": {
+    "message": "Laissez un champ vide pour utiliser le modèle par défaut ci-dessus. Utile quand la même fiche s'atteint différemment selon l'instance."
+  },
+  "overridesNoEnvironments": {
+    "message": "Ajoutez d'abord un environnement."
+  },
+  "errOverrideNoPlaceholder": {
+    "message": "Le modèle pour « $1 » doit contenir {q}."
   }
 }

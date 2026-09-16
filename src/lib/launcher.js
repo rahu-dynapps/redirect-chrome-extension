@@ -69,13 +69,20 @@ function hostOf(baseUrl) {
 export function normalizeSearch(raw) {
   const errors = [];
   const template = String(raw?.template ?? '').trim();
-  if (!template) {
-    errors.push({ code: 'errTemplateEmpty', value: '' });
-  } else if (!PLACEHOLDER_RE.test(template)) {
-    PLACEHOLDER_RE.lastIndex = 0;
-    errors.push({ code: 'errTemplateNoPlaceholder', value: '' });
+  if (!template) errors.push({ code: 'errTemplateEmpty', value: '' });
+  else if (!hasPlaceholder(template)) errors.push({ code: 'errTemplateNoPlaceholder', value: '' });
+
+  // Modèles spécifiques à un environnement : une valeur vide retombe sur le modèle par défaut.
+  const overrides = {};
+  const rawOverrides = raw?.overrides && typeof raw.overrides === 'object' ? raw.overrides : {};
+  for (const [environmentId, value] of Object.entries(rawOverrides)) {
+    const specific = String(value ?? '').trim();
+    if (!specific) continue;
+    overrides[environmentId] = specific;
+    if (!hasPlaceholder(specific)) {
+      errors.push({ code: 'errOverrideNoPlaceholder', value: '', environmentId });
+    }
   }
-  PLACEHOLDER_RE.lastIndex = 0;
 
   const keyword = String(raw?.keyword ?? '')
     .trim()
@@ -88,6 +95,7 @@ export function normalizeSearch(raw) {
       label: String(raw?.label ?? '').trim().slice(0, 60),
       keyword: keyword.slice(0, 16),
       template,
+      overrides,
       // Un environnement épinglé : cette recherche l'utilise toujours, quel que soit le choix courant.
       environmentId: typeof raw?.environmentId === 'string' ? raw.environmentId : ''
     },
@@ -95,12 +103,26 @@ export function normalizeSearch(raw) {
   };
 }
 
-export function isSearchUsable(search) {
-  if (!search?.template) return false;
+function hasPlaceholder(template) {
   PLACEHOLDER_RE.lastIndex = 0;
-  const ok = PLACEHOLDER_RE.test(search.template);
+  const ok = PLACEHOLDER_RE.test(String(template ?? ''));
   PLACEHOLDER_RE.lastIndex = 0;
   return ok;
+}
+
+export function isSearchUsable(search) {
+  return hasPlaceholder(search?.template);
+}
+
+/** Modèle d'URL à employer : celui de l'environnement s'il existe, sinon le modèle par défaut. */
+export function templateFor(search, environment) {
+  const specific = environment?.id ? search?.overrides?.[environment.id] : '';
+  return specific || search?.template || '';
+}
+
+/** Nombre d'environnements pour lesquels la recherche a un modèle spécifique. */
+export function countOverrides(search) {
+  return Object.keys(search?.overrides ?? {}).length;
 }
 
 export function isAbsoluteTemplate(template) {
@@ -110,13 +132,15 @@ export function isAbsoluteTemplate(template) {
 /** Construit l'URL finale à ouvrir. */
 export function buildLaunchUrl({ search, environment, query }) {
   const value = String(query ?? '').trim();
-  if (!isSearchUsable(search)) return { ok: false, error: 'invalid-search' };
+  const template = templateFor(search, environment);
+  if (!hasPlaceholder(template)) return { ok: false, error: 'invalid-search' };
   if (!value) return { ok: false, error: 'empty-query' };
 
-  const absolute = isAbsoluteTemplate(search.template);
+  const absolute = isAbsoluteTemplate(template);
   if (!absolute && !environment?.baseUrl) return { ok: false, error: 'missing-environment' };
 
-  const path = search.template.replace(PLACEHOLDER_RE, encodeURIComponent(value));
+  PLACEHOLDER_RE.lastIndex = 0;
+  const path = template.replace(PLACEHOLDER_RE, encodeURIComponent(value));
   const raw = absolute ? path : `${environment.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 
   try {
@@ -159,6 +183,7 @@ export function resolveLaunch({ text, searches, environments, activeSearchId, ac
   return {
     search,
     environment,
+    template: search ? templateFor(search, environment) : '',
     query: parsed.query,
     matchedKeyword: parsed.matchedKeyword,
     pinnedEnvironment: Boolean(pinned),

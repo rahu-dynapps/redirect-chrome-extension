@@ -502,5 +502,20 @@
   },
   "ruleErrorHint": {
     "message": "The other redirects are still applied. Check the rule below, then fix it."
+  },
+  "overridesSummary": {
+    "message": "Per-environment templates"
+  },
+  "overridesCount": {
+    "message": "$1 customised"
+  },
+  "overridesHint": {
+    "message": "Leave a field empty to use the default template above. Useful when the same record is reached differently depending on the instance."
+  },
+  "overridesNoEnvironments": {
+    "message": "Add an environment first."
+  },
+  "errOverrideNoPlaceholder": {
+    "message": "The template for “$1” must contain {q}."
   }
 }

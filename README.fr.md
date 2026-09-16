@@ -139,6 +139,11 @@ Une recherche est un **modèle d'URL contenant `{q}`**, remplacé par la valeur 
 
 - Un modèle **relatif** est ajouté à l'environnement sélectionné ; un modèle **absolu**
   (`https://…`) ignore l'environnement.
+- Une recherche peut aussi porter un **modèle différent par environnement** : la même recherche
+  « Ticket » peut valoir `/all-tasks/{q}` sur votre portail et
+  `/web#id={q}&model=project.task&view_type=form` sur l'instance d'un client. Ouvrez « Modèles par
+  environnement » dans la ligne de la recherche et ne renseignez que les environnements qui
+  diffèrent — les autres conservent le modèle par défaut.
 - Chaque recherche peut **épingler un environnement**, pour une recherche qui n'a de sens que sur
   l'un d'eux.
 - Trois recherches d'exemple sont créées à la première installation ; elles sont modifiables et

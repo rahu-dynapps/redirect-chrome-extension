@@ -91,6 +91,7 @@ The dashboard holds one listing per language. Fill in **English** first (default
 >
 > • Custom URL templates: /tickets/{q}, /contacts/{q}, or any internal tool
 > • Several environments (production, test, local server), switchable from the keyboard
+> • A search can use a different URL template on each environment
 > • Keywords: “t 1234” opens ticket 1234, “c 57” contact 57
 > • Fully configurable shortcut, plus three direct shortcuts to a specific search
 >
@@ -137,6 +138,7 @@ The dashboard holds one listing per language. Fill in **English** first (default
 >
 > • Modèles d'URL personnalisables : /tickets/{q}, /contacts/{q}, ou n'importe quel outil interne
 > • Plusieurs environnements (production, test, poste local), basculables au clavier
+> • Une recherche peut utiliser un modèle d'URL différent sur chaque environnement
 > • Mots-clés : « t 1234 » ouvre le ticket 1234, « c 57 » la fiche contact 57
 > • Raccourci entièrement configurable, plus trois raccourcis directs vers une recherche précise
 >
