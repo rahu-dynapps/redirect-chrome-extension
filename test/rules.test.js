@@ -4,6 +4,8 @@ import { describe, it } from 'node:test';
 import {
   buildDnrRules,
   buildRegexFilter,
+  compilePattern,
+  compileTarget,
   normalizeMapping,
   parseHostInput,
   previewRedirect,
@@ -217,5 +219,124 @@ describe('requiredOrigins', () => {
 
   it('ne demande rien pour une redirection incomplète', () => {
     assert.deepEqual(requiredOrigins(mapping({ from: 'alias.fr', to: '' })), []);
+  });
+});
+
+describe('règles de motif d’URL', () => {
+  // Cas réel : le chemin change entièrement et l'identifiant doit être reporté dans la cible.
+  const portail = mapping({
+    kind: 'pattern',
+    pattern: 'helpdesk.example.com/**/my/tasks/{id}',
+    target: 'https://app.example.com/web#id={id}&cids=1,6,5&model=project.task&view_type=form'
+  });
+
+  it('capture l’identifiant et reconstruit l’URL cible', () => {
+    const out = previewRedirect(
+      'https://helpdesk.example.com/fr/my/tasks/4009?access_token=91af9137-6639-4063-8b63-6de6a0255968',
+      [portail]
+    );
+    assert.equal(out.ok, true);
+    assert.equal(out.url, 'https://app.example.com/web#id=4009&cids=1,6,5&model=project.task&view_type=form');
+  });
+
+  it('« ** » entre deux barres obliques rend le préfixe de langue facultatif', () => {
+    assert.equal(
+      previewRedirect('https://helpdesk.example.com/my/tasks/4009', [portail]).url,
+      'https://app.example.com/web#id=4009&cids=1,6,5&model=project.task&view_type=form'
+    );
+    assert.equal(
+      previewRedirect('https://helpdesk.example.com/fr/portal/my/tasks/7', [portail]).url,
+      'https://app.example.com/web#id=7&cids=1,6,5&model=project.task&view_type=form'
+    );
+  });
+
+  it('ignore une URL dont le chemin ne correspond pas', () => {
+    assert.equal(previewRedirect('https://helpdesk.example.com/my/orders/12', [portail]).ok, false);
+    assert.equal(previewRedirect('https://autre.example.com/my/tasks/12', [portail]).ok, false);
+  });
+
+  it('abandonne la chaîne de requête sauf si la cible la reconstruit', () => {
+    const avecJeton = mapping({
+      kind: 'pattern',
+      pattern: 'helpdesk.example.com/my/tasks/{id}',
+      target: 'https://app.example.com/tasks/{id}?from=portal'
+    });
+    assert.equal(
+      previewRedirect('https://helpdesk.example.com/my/tasks/9?access_token=abc', [avecJeton]).url,
+      'https://app.example.com/tasks/9?from=portal'
+    );
+  });
+
+  it('produit une règle declarativeNetRequest à substitution', () => {
+    const [rule] = buildDnrRules([portail]);
+    assert.deepEqual(rule.action, {
+      type: 'redirect',
+      redirect: {
+        regexSubstitution: 'https://app.example.com/web#id=\\1&cids=1,6,5&model=project.task&view_type=form'
+      }
+    });
+    assert.equal(
+      rule.condition.regexFilter,
+      '^https?://helpdesk\\.example\\.com(?::\\d+)?/(?:.*/)?my/tasks/([^/?#]+)(?:[?#].*)?$'
+    );
+    assert.ok(!/\(\?[=!<]/.test(rule.condition.regexFilter), 'pas de lookahead : RE2 ne le gère pas');
+  });
+
+  it('demande l’autorisation pour les deux hôtes', () => {
+    assert.deepEqual(requiredOrigins(portail), ['*://helpdesk.example.com/*', '*://app.example.com/*']);
+  });
+
+  it('accepte plusieurs captures et un port', () => {
+    const multi = mapping({
+      kind: 'pattern',
+      pattern: 'localhost:8069/{model}/{id}',
+      target: 'https://app.example.com/web#model={model}&id={id}'
+    });
+    assert.equal(
+      previewRedirect('http://localhost:8069/project.task/42', [multi]).url,
+      'https://app.example.com/web#model=project.task&id=42'
+    );
+    assert.equal(previewRedirect('http://localhost:8070/project.task/42', [multi]).ok, false);
+  });
+
+  it('les jokers * et ** couvrent un segment ou n’importe quoi', () => {
+    const joker = mapping({
+      kind: 'pattern',
+      pattern: 'helpdesk.example.com/*/docs/**',
+      target: 'https://app.example.com/knowledge'
+    });
+    assert.equal(previewRedirect('https://helpdesk.example.com/fr/docs/a/b/c', [joker]).ok, true);
+    assert.equal(previewRedirect('https://helpdesk.example.com/fr/other/a', [joker]).ok, false);
+  });
+
+  it('signale un motif ou une cible invalides', () => {
+    assert.equal(compilePattern('').code, 'errPatternEmpty');
+    assert.equal(compilePattern('*/my/tasks/{id}').code, 'errPatternHost');
+    assert.equal(compilePattern('a.fr/{id}/{id}').code, 'errPatternDuplicate');
+    assert.equal(compilePattern('a.fr/té/{id}').code, 'errPatternNonAscii');
+    assert.equal(compileTarget('', []).code, 'errTargetEmpty');
+    assert.equal(compileTarget('https://a.fr/{other}', ['id']).code, 'errTargetUnknownPlaceholder');
+    assert.equal(compileTarget('https://{host}.fr/x', ['host']).code, 'errTargetHostPlaceholder');
+  });
+
+  it('complète le schéma manquant de la cible', () => {
+    assert.equal(compileTarget('app.example.com/t/{id}', ['id']).template, 'https://app.example.com/t/{id}');
+  });
+
+  it('conserve les deux jeux de champs quand on change de type', () => {
+    const { mapping: m } = normalizeMapping({
+      kind: 'pattern',
+      from: 'helpdesk.example.com',
+      to: 'app.example.com',
+      pattern: 'helpdesk.example.com/my/tasks/{id}',
+      target: 'https://app.example.com/t/{id}'
+    });
+    assert.equal(m.fromHost, 'helpdesk.example.com');
+    assert.equal(m.toHost, 'app.example.com');
+    assert.equal(normalizeMapping({ ...m, kind: 'domain' }).errors.length, 0);
+  });
+
+  it('un motif invalide ne produit aucune règle', () => {
+    assert.deepEqual(buildDnrRules([mapping({ kind: 'pattern', pattern: 'a.fr/{id}', target: '' })]), []);
   });
 });

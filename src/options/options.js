@@ -108,7 +108,7 @@ function renderAll() {
 // --------------------------------------------------------------- redirections
 
 function blankMapping(from = '') {
-  return normalizeMapping({ id: newMappingId(), from, to: '', enabled: true }).mapping;
+  return normalizeMapping({ id: newMappingId(), kind: 'domain', from, to: '', enabled: true }).mapping;
 }
 
 async function refreshPermissions() {
@@ -140,9 +140,13 @@ function renderRules() {
 function renderRule(mapping) {
   const node = cloneTemplate('#rule-template', mapping.id);
   node.classList.toggle('is-disabled', mapping.enabled === false);
+  node.dataset.kind = mapping.kind;
 
+  node.querySelector('.js-kind').value = mapping.kind;
   node.querySelector('.js-from').value = withPort(mapping.fromHost, mapping.fromPort);
   node.querySelector('.js-to').value = withPort(mapping.toHost, mapping.toPort);
+  node.querySelector('.js-pattern').value = mapping.pattern ?? '';
+  node.querySelector('.js-target').value = mapping.target ?? '';
   node.querySelector('.js-enabled').checked = mapping.enabled !== false;
   node.querySelector('.js-subdomains').checked = mapping.includeSubdomains;
   node.querySelector('.js-https').checked = mapping.forceHttps;
@@ -150,7 +154,18 @@ function renderRule(mapping) {
   node.querySelector('.js-note').value = mapping.note ?? '';
 
   const commit = () => updateMapping(mapping.id, node);
-  for (const selector of ['.js-from', '.js-to', '.js-note', '.js-enabled', '.js-subdomains', '.js-https', '.js-subframes']) {
+  for (const selector of [
+    '.js-kind',
+    '.js-from',
+    '.js-to',
+    '.js-pattern',
+    '.js-target',
+    '.js-note',
+    '.js-enabled',
+    '.js-subdomains',
+    '.js-https',
+    '.js-subframes'
+  ]) {
     node.querySelector(selector).addEventListener('change', commit);
   }
   wireRowButtons(node, {
@@ -174,7 +189,8 @@ function showMappingMessage(node, mapping) {
     from: withPort(mapping.fromHost, mapping.fromPort),
     to: withPort(mapping.toHost, mapping.toPort)
   });
-  const incomplete = !mapping.fromHost || !mapping.toHost;
+  const incomplete =
+    mapping.kind === 'pattern' ? !mapping.pattern || !mapping.target : !mapping.fromHost || !mapping.toHost;
 
   if (errors.length && !incomplete) {
     message.textContent = errors.map(translateError).join(' ');
@@ -185,7 +201,8 @@ function showMappingMessage(node, mapping) {
     message.classList.add('warn');
     message.hidden = false;
   } else if (mapping.enabled !== false && !hasPermissions(mapping)) {
-    message.textContent = t('msgMissingPermission', [mapping.fromHost, mapping.toHost]);
+    const [sourceOrigin, targetOrigin] = requiredOrigins(mapping).map(originHost);
+    message.textContent = t('msgMissingPermission', [sourceOrigin, targetOrigin]);
     message.classList.add('warn');
     message.append(button(t('btnAllow'), () => requestOrigins(requiredOrigins(mapping))));
     message.hidden = false;
@@ -197,8 +214,11 @@ async function updateMapping(id, node) {
   if (index === -1) return;
   const { mapping } = normalizeMapping({
     id,
+    kind: node.querySelector('.js-kind').value,
     from: node.querySelector('.js-from').value,
     to: node.querySelector('.js-to').value,
+    pattern: node.querySelector('.js-pattern').value,
+    target: node.querySelector('.js-target').value,
     enabled: node.querySelector('.js-enabled').checked,
     includeSubdomains: node.querySelector('.js-subdomains').checked,
     forceHttps: node.querySelector('.js-https').checked,
@@ -628,6 +648,11 @@ function cloneTemplate(selector, id) {
   applyI18n(node);
   node.dataset.id = id;
   return node;
+}
+
+/** « *://hote/* » → « hote », pour les messages d'autorisation. */
+function originHost(origin) {
+  return origin.replace(/^\*:\/\//, '').replace(/\/\*$/, '');
 }
 
 /** Libellé affichable d'un environnement ou d'une recherche, éventuellement sans nom. */

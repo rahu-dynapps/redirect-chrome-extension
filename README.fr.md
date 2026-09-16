@@ -45,6 +45,34 @@ Fonctionne également sur Edge, Brave, Opera et les autres navigateurs basés su
   permettent de réordonner.
 - **Tester une URL** : colle une URL et affiche la destination calculée, sans naviguer.
 
+### Deux types de règle
+
+**Domaine entier** (par défaut) échange l'hôte et conserve tout le reste — à utiliser quand seul le
+domaine diffère.
+
+**Motif d'URL** sert quand le chemin change aussi. La source est un motif à captures, la cible un
+modèle d'URL complet :
+
+| | |
+| --- | --- |
+| Motif | `helpdesk.example.com/**/my/tasks/{id}` |
+| Cible | `https://app.example.com/web#id={id}&model=project.task&view_type=form` |
+
+```
+https://helpdesk.example.com/fr/my/tasks/4009?access_token=91af9137-…
+        ↓
+https://app.example.com/web#id=4009&model=project.task&view_type=form
+```
+
+- `{nom}` capture un segment de chemin et se réutilise dans la cible (9 captures au maximum).
+- `*` remplace une portion de segment, `**` n'importe quoi, et `**` entre deux barres obliques un
+  nombre quelconque de segments **y compris aucun** — c'est ce qui rend le préfixe de langue `/fr/`
+  facultatif.
+- La chaîne de requête est abandonnée sauf si la cible la reconstruit : un jeton d'accès présent
+  dans l'URL source disparaît donc.
+- L'ancre (après `#`) n'est jamais envoyée au serveur, un motif ne peut pas s'appuyer dessus — mais
+  la cible peut en contenir une.
+
 ### Popup (icône de la barre d'outils)
 
 - État de l'onglet courant (domaine, redirection appliquée ou non).

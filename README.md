@@ -43,6 +43,33 @@ Also works on Edge, Brave, Opera and other Chromium-based browsers (≥ 108).
 - **Order**: the first redirect whose source domain matches wins; reorder with the ↑ ↓ arrows.
 - **Test a URL**: paste a URL and see the computed destination without navigating.
 
+### Two kinds of rule
+
+**Whole domain** (the default) swaps the host and keeps everything else — use it when only the
+domain differs.
+
+**URL pattern** is for when the path changes too. The source is a pattern with captures, the target
+a complete URL template:
+
+| | |
+| --- | --- |
+| Pattern | `helpdesk.example.com/**/my/tasks/{id}` |
+| Target | `https://app.example.com/web#id={id}&model=project.task&view_type=form` |
+
+```
+https://helpdesk.example.com/fr/my/tasks/4009?access_token=91af9137-…
+        ↓
+https://app.example.com/web#id=4009&model=project.task&view_type=form
+```
+
+- `{name}` captures one path segment and is reused in the target (up to 9 per rule).
+- `*` matches part of a segment, `**` matches anything, and `**` between slashes matches any number
+  of segments **including none** — which is what makes the optional `/fr/` language prefix work.
+- The query string is dropped unless the target adds it back, so an access token in the source URL
+  disappears.
+- The fragment (after `#`) never reaches the server, so a pattern cannot match on it — but the
+  target may contain one.
+
 ### Popup (toolbar icon)
 
 - State of the current tab (domain, redirect applied or not).

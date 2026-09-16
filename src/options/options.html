@@ -42,6 +42,7 @@
             <button type="button" id="add-rule" class="btn btn-primary" data-i18n="addRedirect"></button>
           </div>
           <p class="hint" data-i18n="redirectsHint"></p>
+          <p class="hint" data-i18n-rich="patternHint"></p>
           <ul id="rules" class="rules"></ul>
           <p id="empty-state" class="empty" data-i18n-rich="redirectsEmpty" hidden></p>
         </section>
@@ -110,16 +111,11 @@
 
     <template id="rule-template">
       <li class="rule">
-        <div class="rule-grid">
-          <label class="field">
-            <span data-i18n="fieldSourceDomain"></span>
-            <input type="text" class="js-from" data-i18n-placeholder="phSourceDomain" spellcheck="false" />
-          </label>
-          <span class="arrow" aria-hidden="true">→</span>
-          <label class="field">
-            <span data-i18n="fieldTargetDomain"></span>
-            <input type="text" class="js-to" data-i18n-placeholder="phTargetDomain" spellcheck="false" />
-          </label>
+        <div class="rule-head">
+          <select class="js-kind" data-i18n-title="kindLabel">
+            <option value="domain" data-i18n="kindDomain"></option>
+            <option value="pattern" data-i18n="kindPattern"></option>
+          </select>
           <div class="rule-buttons">
             <label class="switch switch-sm" data-i18n-title="toggleEnableRule">
               <input type="checkbox" class="js-enabled" />
@@ -139,9 +135,38 @@
             </button>
           </div>
         </div>
+
+        <div class="rule-grid domain-only">
+          <label class="field">
+            <span data-i18n="fieldSourceDomain"></span>
+            <input type="text" class="js-from" data-i18n-placeholder="phSourceDomain" spellcheck="false" />
+          </label>
+          <span class="arrow" aria-hidden="true">→</span>
+          <label class="field">
+            <span data-i18n="fieldTargetDomain"></span>
+            <input type="text" class="js-to" data-i18n-placeholder="phTargetDomain" spellcheck="false" />
+          </label>
+        </div>
+
+        <div class="rule-grid pattern-only">
+          <label class="field">
+            <span data-i18n="fieldSourcePattern"></span>
+            <input type="text" class="js-pattern" data-i18n-placeholder="phSourcePattern" spellcheck="false" />
+          </label>
+          <span class="arrow" aria-hidden="true">→</span>
+          <label class="field">
+            <span data-i18n="fieldTargetTemplate"></span>
+            <input type="text" class="js-target" data-i18n-placeholder="phTargetTemplate" spellcheck="false" />
+          </label>
+        </div>
+
         <div class="rule-options">
-          <label><input type="checkbox" class="js-subdomains" /> <span data-i18n="optSubdomains"></span></label>
-          <label><input type="checkbox" class="js-https" /> <span data-i18n="optForceHttps"></span></label>
+          <label class="domain-only">
+            <input type="checkbox" class="js-subdomains" /> <span data-i18n="optSubdomains"></span>
+          </label>
+          <label class="domain-only">
+            <input type="checkbox" class="js-https" /> <span data-i18n="optForceHttps"></span>
+          </label>
           <label><input type="checkbox" class="js-subframes" /> <span data-i18n="optSubframes"></span></label>
           <input type="text" class="js-note note" data-i18n-placeholder="phNote" maxlength="200" />
         </div>

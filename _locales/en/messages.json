@@ -442,5 +442,56 @@
   },
   "exampleSearchOrder": {
     "message": "Order"
+  },
+  "kindLabel": {
+    "message": "Rule type"
+  },
+  "kindDomain": {
+    "message": "Whole domain"
+  },
+  "kindPattern": {
+    "message": "URL pattern"
+  },
+  "fieldSourcePattern": {
+    "message": "Source URL pattern"
+  },
+  "fieldTargetTemplate": {
+    "message": "Target URL template"
+  },
+  "phSourcePattern": {
+    "message": "helpdesk.example.com/**/tasks/{id}"
+  },
+  "phTargetTemplate": {
+    "message": "https://app.example.com/web#id={id}&model=task&view_type=form"
+  },
+  "patternHint": {
+    "message": "Use a pattern when the path changes too, not just the domain. `{id}` captures one path segment and is reused in the target; `*` matches part of a segment, `**` anything, and `**` between slashes any number of segments — including none, which covers an optional language prefix. The query string is dropped unless the target adds it back. The fragment (after `#`) is never sent to the server, so a pattern cannot match on it."
+  },
+  "errPatternEmpty": {
+    "message": "Enter the source URL pattern."
+  },
+  "errPatternHost": {
+    "message": "The pattern must start with a plain domain name — “$1” is not one."
+  },
+  "errPatternDuplicate": {
+    "message": "The placeholder “{$1}” appears twice in the pattern."
+  },
+  "errPatternTooMany": {
+    "message": "A pattern can capture at most $1 placeholders."
+  },
+  "errPatternNonAscii": {
+    "message": "The pattern must use ASCII characters only."
+  },
+  "errTargetEmpty": {
+    "message": "Enter the target URL template."
+  },
+  "errTargetInvalid": {
+    "message": "“$1” is not a valid http(s) URL."
+  },
+  "errTargetUnknownPlaceholder": {
+    "message": "The target uses “{$1}”, which the pattern does not capture."
+  },
+  "errTargetHostPlaceholder": {
+    "message": "The domain of the target URL cannot contain a placeholder."
   }
 }

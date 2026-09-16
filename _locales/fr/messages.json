@@ -442,5 +442,56 @@
   },
   "exampleSearchOrder": {
     "message": "Commande"
+  },
+  "kindLabel": {
+    "message": "Type de règle"
+  },
+  "kindDomain": {
+    "message": "Domaine entier"
+  },
+  "kindPattern": {
+    "message": "Motif d'URL"
+  },
+  "fieldSourcePattern": {
+    "message": "Motif d'URL source"
+  },
+  "fieldTargetTemplate": {
+    "message": "Modèle d'URL cible"
+  },
+  "phSourcePattern": {
+    "message": "helpdesk.example.com/**/tasks/{id}"
+  },
+  "phTargetTemplate": {
+    "message": "https://app.example.com/web#id={id}&model=task&view_type=form"
+  },
+  "patternHint": {
+    "message": "Utilisez un motif quand le chemin change, et pas seulement le domaine. `{id}` capture un segment et se réutilise dans la cible ; `*` remplace une portion de segment, `**` n'importe quoi, et `**` entre deux barres obliques un nombre quelconque de segments — y compris aucun, ce qui couvre un préfixe de langue facultatif. La chaîne de requête est abandonnée, sauf si la cible la reconstruit. L'ancre (après `#`) n'est jamais envoyée au serveur : un motif ne peut pas s'appuyer dessus."
+  },
+  "errPatternEmpty": {
+    "message": "Indiquez le motif d'URL source."
+  },
+  "errPatternHost": {
+    "message": "Le motif doit commencer par un nom de domaine littéral — « $1 » n'en est pas un."
+  },
+  "errPatternDuplicate": {
+    "message": "Le jeton « {$1} » apparaît deux fois dans le motif."
+  },
+  "errPatternTooMany": {
+    "message": "Un motif ne peut capturer que $1 jetons au maximum."
+  },
+  "errPatternNonAscii": {
+    "message": "Le motif ne doit contenir que des caractères ASCII."
+  },
+  "errTargetEmpty": {
+    "message": "Indiquez le modèle d'URL cible."
+  },
+  "errTargetInvalid": {
+    "message": "« $1 » n'est pas une URL http(s) valide."
+  },
+  "errTargetUnknownPlaceholder": {
+    "message": "La cible utilise « {$1} », que le motif ne capture pas."
+  },
+  "errTargetHostPlaceholder": {
+    "message": "Le domaine de l'URL cible ne peut pas contenir de jeton."
   }
 }

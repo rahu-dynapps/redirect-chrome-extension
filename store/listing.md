@@ -80,6 +80,7 @@ The dashboard holds one listing per language. Fill in **English** first (default
 > becomes
 > https://app-1234.hosting.example.com/tickets/42?debug=assets#tab=notes
 >
+> • Two kinds of rule: swap the whole domain, or match a URL pattern — capture an ID from the path and rebuild a completely different target URL
 > • As many redirects as you need, each one switchable
 > • Options for subdomains, forcing HTTPS, and iframes
 > • Test a URL without navigating
@@ -125,6 +126,7 @@ The dashboard holds one listing per language. Fill in **English** first (default
 > devient
 > https://app-1234.hosting.example.com/tickets/42?debug=assets#tab=notes
 >
+> • Deux types de règle : échanger le domaine entier, ou faire correspondre un motif d'URL — capturer un identifiant dans le chemin et reconstruire une URL cible totalement différente
 > • Autant de redirections que nécessaire, activables une par une
 > • Option sous-domaines, forçage HTTPS, prise en compte des iframes
 > • Test d'une URL sans naviguer

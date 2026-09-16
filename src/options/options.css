@@ -275,3 +275,22 @@ kbd {
   font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 11px;
 }
+
+/* ------------------------------------------------- type de règle (domaine / motif) */
+
+.rule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.rule-head select { width: auto; min-width: 160px; font-size: 12px; padding: 5px 8px; }
+
+.rule-grid { grid-template-columns: 1fr auto 1fr; }
+.rule[data-kind='domain'] .pattern-only,
+.rule[data-kind='pattern'] .domain-only { display: none; }
+.rule-options label.domain-only { display: inline-flex; }
+.rule[data-kind='pattern'] .rule-options label.domain-only { display: none; }
+
+.pattern-only input { font-size: 12px; }
