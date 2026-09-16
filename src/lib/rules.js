@@ -251,9 +251,13 @@ export function buildTransform(mapping) {
  * Construit les règles dynamiques declarativeNetRequest.
  * Les priorités décroissent avec l'ordre de la liste : la première redirection qui correspond gagne.
  */
-export function buildDnrRules(mappings, settings = { enabled: true }) {
+export function activeMappings(mappings, settings = { enabled: true }) {
   if (settings?.enabled === false) return [];
-  const usable = (mappings ?? []).filter((m) => m.enabled !== false && isUsable(m)).slice(0, MAX_MAPPINGS);
+  return (mappings ?? []).filter((m) => m.enabled !== false && isUsable(m)).slice(0, MAX_MAPPINGS);
+}
+
+export function buildDnrRules(mappings, settings = { enabled: true }) {
+  const usable = activeMappings(mappings, settings);
   return usable.map((mapping, index) => ({
     id: index + 1,
     priority: REDIRECT_RULE_PRIORITY_BASE + (usable.length - index),

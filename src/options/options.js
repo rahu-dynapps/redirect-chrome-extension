@@ -56,7 +56,9 @@ async function init() {
   }
 
   await refreshPermissions();
+  await refreshRuleError();
   renderAll();
+  chrome.storage.session.onChanged?.addListener(() => refreshRuleError());
   if (prefill) focusRow('#rules', state.mappings.at(-1).id, '.js-to');
 
   activateTab(location.hash.replace('#', '') || 'redirects');
@@ -95,6 +97,24 @@ function activateTab(name) {
   for (const tab of $$('.tab')) tab.setAttribute('aria-selected', String(tab.dataset.tab === active));
   for (const panel of $$('.tab-panel')) panel.hidden = panel.dataset.panel !== active;
   if (location.hash.replace('#', '') !== active) history.replaceState(null, '', `#${active}`);
+}
+
+/** Signale une règle que Chrome a refusé d'appliquer : sans cela, l'échec est invisible. */
+async function refreshRuleError() {
+  const stored = await chrome.storage.session.get('ruleError');
+  const error = stored?.ruleError;
+  const banner = $('#rule-error-banner');
+  const list = $('#rule-error-list');
+  list.textContent = '';
+  banner.hidden = !error;
+  if (!error) return;
+
+  const entries = error.failures?.length ? error.failures : [{ label: '', message: error.message }];
+  for (const entry of entries) {
+    const item = document.createElement('li');
+    item.textContent = entry.label ? `${entry.label} — ${entry.message}` : entry.message;
+    list.append(item);
+  }
 }
 
 function renderAll() {

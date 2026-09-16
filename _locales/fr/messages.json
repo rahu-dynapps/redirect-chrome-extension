@@ -493,5 +493,14 @@
   },
   "errTargetHostPlaceholder": {
     "message": "Le domaine de l'URL cible ne peut pas contenir de jeton."
+  },
+  "actionTitleError": {
+    "message": "Redirection de domaines — une règle a été refusée par Chrome"
+  },
+  "ruleErrorTitle": {
+    "message": "Chrome a refusé une redirection."
+  },
+  "ruleErrorHint": {
+    "message": "Les autres redirections restent appliquées. Vérifiez la règle ci-dessous, puis corrigez-la."
   }
 }

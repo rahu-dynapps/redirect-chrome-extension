@@ -493,5 +493,14 @@
   },
   "errTargetHostPlaceholder": {
     "message": "The domain of the target URL cannot contain a placeholder."
+  },
+  "actionTitleError": {
+    "message": "Domain Redirect & Launch — a rule was rejected by Chrome"
+  },
+  "ruleErrorTitle": {
+    "message": "Chrome rejected a redirect."
+  },
+  "ruleErrorHint": {
+    "message": "The other redirects are still applied. Check the rule below, then fix it."
   }
 }

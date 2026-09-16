@@ -294,3 +294,10 @@ kbd {
 .rule[data-kind='pattern'] .rule-options label.domain-only { display: none; }
 
 .pattern-only input { font-size: 12px; }
+
+.banner-error {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+.banner-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+.banner-list li { word-break: break-word; }

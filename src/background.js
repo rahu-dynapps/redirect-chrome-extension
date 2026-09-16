@@ -1,12 +1,13 @@
 // Service worker : synchronise les règles declarativeNetRequest avec le stockage,
 // gère la dérogation « ne pas rediriger cet onglet » et la fenêtre du lanceur.
-import { BYPASS_RULE_PRIORITY, buildDnrRules } from './lib/rules.js';
+import { BYPASS_RULE_PRIORITY, activeMappings, buildDnrRules, describeMapping } from './lib/rules.js';
 import { EXAMPLE_SEARCHES, QUICK_SLOTS, normalizeSearch } from './lib/launcher.js';
 import { t } from './lib/i18n.js';
 import { loadState, loadLauncher, onStateChanged, saveSearches } from './lib/storage.js';
 
 const BYPASS_RESOURCE_TYPES = ['main_frame', 'sub_frame'];
 const LAUNCHER_WINDOW_KEY = 'launcherWindowId';
+const RULE_ERROR_KEY = 'ruleError';
 const LAUNCHER_SIZE = { width: 560, height: 300 };
 
 // ---------------------------------------------------------------- redirections
@@ -15,19 +16,63 @@ async function syncRules() {
   const { mappings, settings } = await loadState();
   const rules = buildDnrRules(mappings, settings);
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: existing.map((rule) => rule.id),
-    addRules: rules
-  });
-  await updateBadge(settings, rules.length);
+  const removeRuleIds = existing.map((rule) => rule.id);
+
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds, addRules: rules });
+    await setRuleError(null);
+    await updateBadge(settings, rules.length);
+  } catch (error) {
+    // Chrome rejette le lot entier dès qu'une règle lui déplaît : sans isolation, plus aucune
+    // redirection ne s'applique et rien ne le signale. On rejoue règle par règle.
+    const applied = await applyRulesIndividually(rules, removeRuleIds);
+    await setRuleError({
+      message: String(error?.message ?? error),
+      failures: applied.failures.map(({ index, message }) => ({
+        label: describeMapping(activeMappings(mappings, settings)[index]),
+        message
+      }))
+    });
+    await updateBadge(settings, applied.count);
+  }
+}
+
+/** Applique les règles une par une pour isoler celle que Chrome refuse. */
+async function applyRulesIndividually(rules, removeRuleIds) {
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds, addRules: [] }).catch(() => {});
+  const failures = [];
+  let count = 0;
+  for (const [index, rule] of rules.entries()) {
+    try {
+      await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [], addRules: [rule] });
+      count += 1;
+    } catch (error) {
+      failures.push({ index, message: String(error?.message ?? error) });
+    }
+  }
+  return { count, failures };
+}
+
+async function setRuleError(error) {
+  if (error) await chrome.storage.session.set({ [RULE_ERROR_KEY]: error });
+  else await chrome.storage.session.remove(RULE_ERROR_KEY);
 }
 
 async function updateBadge(settings, ruleCount) {
   const paused = settings?.enabled === false;
-  await chrome.action.setBadgeText({ text: paused ? 'OFF' : '' });
-  if (paused) await chrome.action.setBadgeBackgroundColor({ color: '#9aa0b4' });
+  const stored = await chrome.storage.session.get(RULE_ERROR_KEY);
+  const failed = Boolean(stored?.[RULE_ERROR_KEY]);
+
+  await chrome.action.setBadgeText({ text: failed ? '!' : paused ? 'OFF' : '' });
+  if (failed) await chrome.action.setBadgeBackgroundColor({ color: '#c4314b' });
+  else if (paused) await chrome.action.setBadgeBackgroundColor({ color: '#9aa0b4' });
+
   await chrome.action.setTitle({
-    title: paused ? t('actionTitlePaused') : t('actionTitleActive', [String(ruleCount)])
+    title: failed
+      ? t('actionTitleError')
+      : paused
+        ? t('actionTitlePaused')
+        : t('actionTitleActive', [String(ruleCount)])
   });
 }
 
